@@ -54,10 +54,20 @@ class Plugin {
      */
     private function init_hooks() {
         add_action('plugins_loaded', array($this, 'load_textdomain'));
-        \PerfAuditPro\API\Rest_API::init();
-        \PerfAuditPro\Cron\Scheduler::init();
-        \PerfAuditPro\Frontend\RUM_Enqueue::init();
-        \PerfAuditPro\Admin\Admin_Page::init();
+        
+        // Initialize components - autoloader will handle class loading
+        if (class_exists('PerfAuditPro\API\Rest_API')) {
+            \PerfAuditPro\API\Rest_API::init();
+        }
+        if (class_exists('PerfAuditPro\Cron\Scheduler')) {
+            \PerfAuditPro\Cron\Scheduler::init();
+        }
+        if (class_exists('PerfAuditPro\Frontend\RUM_Enqueue')) {
+            \PerfAuditPro\Frontend\RUM_Enqueue::init();
+        }
+        if (class_exists('PerfAuditPro\Admin\Admin_Page')) {
+            \PerfAuditPro\Admin\Admin_Page::init();
+        }
     }
 
     /**

@@ -32,11 +32,21 @@ class Autoloader {
         }
 
         $class_name = str_replace('PerfAuditPro\\', '', $class_name);
-        $class_name = str_replace('\\', '/', $class_name);
-        $class_name = str_replace('_', '-', $class_name);
-        $class_name = strtolower($class_name);
-
-        $file_path = PERFAUDIT_PRO_PLUGIN_DIR . 'includes/' . $class_name . '.php';
+        $parts = explode('\\', $class_name);
+        $class_part = array_pop($parts);
+        $path_part = implode('/', $parts);
+        
+        // Convert class name: Rest_API -> rest-api
+        $class_file = str_replace('_', '-', $class_part);
+        $class_file = strtolower($class_file);
+        
+        // Build path: API/Rest_API -> api/class-rest-api.php
+        $path = '';
+        if (!empty($path_part)) {
+            $path = strtolower($path_part) . '/';
+        }
+        
+        $file_path = PERFAUDIT_PRO_PLUGIN_DIR . 'includes/' . $path . 'class-' . $class_file . '.php';
 
         if (file_exists($file_path)) {
             require_once $file_path;
