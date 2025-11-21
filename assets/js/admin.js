@@ -770,12 +770,13 @@
         return div.innerHTML;
     }
 
-    function createAudit(url) {
+    function createAudit(url, device = 'desktop') {
         return $.ajax({
             url: PerfAuditPro.apiUrl + 'create-audit',
             method: 'POST',
             data: JSON.stringify({
                 url: url,
+                device: device,
                 audit_type: 'lighthouse'
             }),
             contentType: 'application/json',

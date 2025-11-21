@@ -289,6 +289,9 @@ class Rest_API {
             return $result;
         }
 
+        // Trigger audit completed action
+        do_action('perfaudit_pro_audit_completed', $audit_id, $results);
+
         return new \WP_REST_Response(array(
             'success' => true,
             'message' => 'Audit results updated',
@@ -303,12 +306,17 @@ class Rest_API {
      */
     public static function handle_create_audit($request) {
         $url = sanitize_url($request->get_param('url'));
-        $audit_type = sanitize_text_field($request->get_param('audit_type'));
+        $audit_type = sanitize_text_field($request->get_param('audit_type')) ?: 'lighthouse';
+        $device = sanitize_text_field($request->get_param('device')) ?: 'desktop';
+        
+        if (!in_array($device, array('desktop', 'mobile'))) {
+            $device = 'desktop';
+        }
 
         require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/database/class-audit-repository.php';
         $repository = new \PerfAuditPro\Database\Audit_Repository();
 
-        $audit_id = $repository->create_synthetic_audit($url, $audit_type);
+        $audit_id = $repository->create_synthetic_audit($url, $audit_type, $device);
 
         if (is_wp_error($audit_id)) {
             return $audit_id;
