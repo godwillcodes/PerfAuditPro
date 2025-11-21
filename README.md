@@ -9,14 +9,14 @@
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
-> WordPress performance monitoring plugin with Google PageSpeed Insights API and Real User Monitoring.
+Perform automated website audits with lab and real-user data efficiently.
 
 [![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)](https://github.com/godwillcodes/PerfAuditPro)
 
-Site Performance Tracker is an enterprise-grade WordPress plugin that provides comprehensive website performance monitoring through automated synthetic audits and real user metrics. Built with Google PageSpeed Insights API integration, it delivers actionable insights to help you optimize your site's speed, Core Web Vitals, and overall user experience.
+Site Performance Tracker is a WordPress plugin that provides comprehensive website performance monitoring through automated synthetic audits and real user metrics. Built with Google PageSpeed Insights API integration, it delivers actionable insights to help you optimize your site's speed, Core Web Vitals, and overall user experience.
 
 ## 🚀 Features
 

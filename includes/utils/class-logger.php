@@ -38,15 +38,15 @@ class Logger {
      * @return void
      */
     public static function log(string $level, string $message, array $context = []): void {
-        // Only log if WP_DEBUG is enabled and WP_DEBUG_LOG is also enabled
-        if (!defined('WP_DEBUG') || !WP_DEBUG || !defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
+        // Only log if WP_DEBUG is enabled
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
             return;
         }
 
         $log_entry = self::format_log_entry($level, $message, $context);
         
-        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- error_log() is conditionally used only when WP_DEBUG_LOG is enabled
-        if (function_exists('error_log')) {
+        if (defined('WP_DEBUG') && WP_DEBUG && function_exists('error_log')) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- error_log() is conditionally used only when WP_DEBUG is enabled
             error_log($log_entry);
         }
     }

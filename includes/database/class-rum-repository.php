@@ -198,22 +198,41 @@ class RUM_Repository {
         $days = \PerfAuditPro\Utils\Validator::validate_positive_int($days, 30, 1, 365);
         $start_date = gmdate('Y-m-d', strtotime("-{$days} days"));
 
+        // Generate cache key based on parameters
+        $cache_key = 'perfaudit_rum_metrics_' . md5(serialize(array($url, $days)));
+        $cache_group = 'perfaudit_rum';
+        $cache_ttl = 300; // 5 minutes
+
+        // Try to get from cache first
+        $cached = wp_cache_get($cache_key, $cache_group);
+        if ($cached !== false) {
+            return $cached;
+        }
+
         $where_conditions = array('date >= %s');
+        // $start_date is generated from gmdate() which is safe, and will be escaped by $wpdb->prepare() with %s placeholder
         $where_values = array($start_date);
         
         if ($url !== null && $url !== '') {
             $validated_url = \PerfAuditPro\Utils\Validator::validate_url($url);
             if ($validated_url !== null) {
                 $where_conditions[] = 'url = %s';
+                // $validated_url is validated and sanitized via esc_url_raw() in Validator::validate_url(), and will be escaped by $wpdb->prepare() with %s placeholder
                 $where_values[] = $validated_url;
             }
         }
 
-        $query = 'SELECT * FROM `' . esc_sql($table_name) . '` WHERE ' . implode(' AND ', $where_conditions) . ' ORDER BY date DESC';
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
-        $prepared_query = $wpdb->prepare($query, $where_values);
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is prepared via $wpdb->prepare()
-        return $wpdb->get_results($prepared_query, ARRAY_A);
+        $table_name_escaped = esc_sql($table_name);
+        $query = "SELECT * FROM `{$table_name_escaped}` WHERE " . implode(' AND ', $where_conditions) . ' ORDER BY date DESC';
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely with validated inputs, $wpdb->prepare() with %s placeholders properly escapes all values via spread operator
+        $prepared_query = $wpdb->prepare($query, ...$where_values);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared via $wpdb->prepare() with validated inputs, caching implemented
+        $results = $wpdb->get_results($prepared_query, ARRAY_A);
+
+        // Cache the results
+        wp_cache_set($cache_key, $results, $cache_group, $cache_ttl);
+
+        return $results;
     }
 }
 

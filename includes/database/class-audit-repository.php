@@ -254,46 +254,62 @@ class Audit_Repository {
             $validated_url = \PerfAuditPro\Utils\Validator::validate_url($url);
             if ($validated_url !== null) {
                 $where_conditions[] = 'url = %s';
+                // $validated_url is validated and sanitized via esc_url_raw() in Validator::validate_url(), and will be escaped by $wpdb->prepare() with %s placeholder
                 $where_values[] = $validated_url;
             }
         }
 
         if (!empty($filters['status']) && \PerfAuditPro\Utils\Validator::is_valid_status($filters['status'])) {
             $where_conditions[] = 'status = %s';
+            // Status is validated via Validator::is_valid_status() and sanitized, will be escaped by $wpdb->prepare() with %s placeholder
             $where_values[] = strtolower(sanitize_text_field($filters['status']));
         }
 
         if (!empty($filters['search'])) {
             $where_conditions[] = 'url LIKE %s';
+            // Search term is sanitized and escaped with $wpdb->esc_like() for LIKE queries, will be escaped by $wpdb->prepare() with %s placeholder
             $where_values[] = '%' . $wpdb->esc_like(sanitize_text_field($filters['search'])) . '%';
         }
 
         if (!empty($filters['date_from'])) {
-            $where_conditions[] = 'DATE(created_at) >= %s';
-            $where_values[] = sanitize_text_field($filters['date_from']);
+            // Validate date format (Y-m-d)
+            $date_from = sanitize_text_field($filters['date_from']);
+            $date_from_parsed = date_create_from_format('Y-m-d', $date_from);
+            if ($date_from_parsed !== false) {
+                $where_conditions[] = 'DATE(created_at) >= %s';
+                // Date is validated and will be escaped by $wpdb->prepare() with %s placeholder
+                $where_values[] = $date_from_parsed->format('Y-m-d');
+            }
         }
 
         if (!empty($filters['date_to'])) {
-            $where_conditions[] = 'DATE(created_at) <= %s';
-            $where_values[] = sanitize_text_field($filters['date_to']);
+            // Validate date format (Y-m-d)
+            $date_to = sanitize_text_field($filters['date_to']);
+            $date_to_parsed = date_create_from_format('Y-m-d', $date_to);
+            if ($date_to_parsed !== false) {
+                $where_conditions[] = 'DATE(created_at) <= %s';
+                // Date is validated and will be escaped by $wpdb->prepare() with %s placeholder
+                $where_values[] = $date_to_parsed->format('Y-m-d');
+            }
         }
 
-        $query = 'SELECT * FROM `' . esc_sql($table_name) . '`';
+        $table_name_escaped = esc_sql($table_name);
+        $query = "SELECT * FROM `{$table_name_escaped}`";
         if (!empty($where_conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $where_conditions);
         }
         $query .= ' ORDER BY created_at DESC LIMIT %d';
         
         if (!empty($where_values)) {
-            $where_values[] = $limit;
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
-            $prepared_query = $wpdb->prepare($query, $where_values);
+            $where_values[] = absint($limit);
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely with validated inputs, $wpdb->prepare() with %s/%d placeholders properly escapes all values via spread operator
+            $prepared_query = $wpdb->prepare($query, ...$where_values);
         } else {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
-            $prepared_query = $wpdb->prepare($query, $limit);
+            $prepared_query = $wpdb->prepare($query, absint($limit));
         }
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery -- Query is prepared via $wpdb->prepare(), caching implemented
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared via $wpdb->prepare() with validated inputs, caching implemented
         $results = $wpdb->get_results($prepared_query, ARRAY_A);
 
         // Cache the results
@@ -329,12 +345,16 @@ class Audit_Repository {
             $valid_ids = array_slice($valid_ids, 0, 1000);
         }
 
+        // Sanitize IDs to ensure they are all integers
+        $valid_ids = array_map('absint', $valid_ids);
+        
         $placeholders = implode(',', array_fill(0, count($valid_ids), '%d'));
-        $query = 'DELETE FROM `' . esc_sql($table_name) . '` WHERE id IN (' . $placeholders . ')';
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
-        $prepared_query = $wpdb->prepare($query, $valid_ids);
+        $table_name_escaped = esc_sql($table_name);
+        $query = "DELETE FROM `{$table_name_escaped}` WHERE id IN ({$placeholders})";
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared with spread operator
+        $prepared_query = $wpdb->prepare($query, ...$valid_ids);
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery -- Query is prepared via $wpdb->prepare()
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is prepared via $wpdb->prepare(), DELETE operations don't need caching
         $deleted = $wpdb->query($prepared_query);
         
         // Clear caches when audits are deleted
