@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     <div class="perfaudit-pro-card" style="margin-bottom: 20px; background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%); color: white; border: none;">
         <h2 style="color: white; margin-top: 0;">🤖 Worker Status</h2>
         <div id="worker-status-container">
-            <p style="margin-bottom: 16px; opacity: 0.9;">The worker processes Lighthouse audits automatically. Click to start/stop.</p>
+            <p style="margin-bottom: 16px; opacity: 0.9;">PHP-based worker processes audits automatically using Google PageSpeed Insights API. No Node.js required! Click to start/stop.</p>
             <div style="display: flex; gap: 12px; align-items: center;">
                 <button id="worker-start-btn" class="button" style="background: white; color: #007BFF; border: none; font-weight: 600; padding: 10px 24px;">
                     ▶ Start Worker

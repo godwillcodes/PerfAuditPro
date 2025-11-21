@@ -500,13 +500,9 @@
                         $('#worker-status-text').text('⚪ Stopped').css('color', '#64748b');
                     }
                     
-                    if (!nodeAvailable) {
-                        $('#worker-message').html('<strong>⚠️ ' + response.data.node_message + '</strong>').show();
-                        $('#worker-start-btn').prop('disabled', true);
-                    } else {
-                        $('#worker-message').hide();
-                        $('#worker-start-btn').prop('disabled', false);
-                    }
+                    // PHP worker always available, no Node.js check needed
+                    $('#worker-message').hide();
+                    $('#worker-start-btn').prop('disabled', false);
                 }
             }
         });

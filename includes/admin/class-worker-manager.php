@@ -82,33 +82,17 @@ class Worker_Manager {
             return;
         }
 
-        $worker_dir = PERFAUDIT_PRO_PLUGIN_DIR . 'worker';
-        $worker_script = $worker_dir . '/worker.js';
-
-        if (!file_exists($worker_script)) {
-            wp_send_json_error(array('message' => 'Worker script not found'));
-            return;
-        }
-
-        // Check if Node.js is available
-        $node_check = self::check_node_available();
-        if (!$node_check['available']) {
-            wp_send_json_error(array('message' => $node_check['message']));
-            return;
-        }
-
         // Auto-configure if needed
         self::auto_configure();
 
-        // Try to start worker using different methods
+        // Start PHP worker (no Node.js needed)
         $result = self::start_worker_process();
 
         if ($result['success']) {
             update_option('perfaudit_worker_status', 'running');
-            update_option('perfaudit_worker_pid', $result['pid']);
             wp_send_json_success(array(
-                'message' => 'Worker started successfully',
-                'pid' => $result['pid']
+                'message' => 'PHP Worker started successfully (no Node.js required)',
+                'pid' => null
             ));
         } else {
             wp_send_json_error(array('message' => $result['message']));
@@ -126,15 +110,8 @@ class Worker_Manager {
             return;
         }
 
-        $pid = get_option('perfaudit_worker_pid');
-        if ($pid) {
-            if (function_exists('posix_kill')) {
-                posix_kill($pid, SIGTERM);
-            } else {
-                // Fallback for Windows
-                exec("taskkill /F /PID {$pid} 2>&1", $output);
-            }
-        }
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/worker/class-php-worker.php';
+        \PerfAuditPro\Worker\PHP_Worker::stop();
 
         update_option('perfaudit_worker_status', 'stopped');
         delete_option('perfaudit_worker_pid');
@@ -153,15 +130,16 @@ class Worker_Manager {
             return;
         }
 
-        $status = get_option('perfaudit_worker_status', 'stopped');
-        $pid = get_option('perfaudit_worker_pid');
-        $node_check = self::check_node_available();
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/worker/class-php-worker.php';
+        $is_running = \PerfAuditPro\Worker\PHP_Worker::is_running();
+        
+        $status = $is_running ? 'running' : 'stopped';
 
         wp_send_json_success(array(
             'status' => $status,
-            'pid' => $pid,
-            'node_available' => $node_check['available'],
-            'node_message' => $node_check['message']
+            'pid' => null,
+            'node_available' => true,
+            'node_message' => 'PHP Worker (No Node.js required)'
         ));
     }
 
@@ -196,44 +174,17 @@ class Worker_Manager {
     }
 
     /**
-     * Start worker process
+     * Start worker process (PHP-based, no Node.js needed)
      */
     private static function start_worker_process() {
-        $worker_dir = PERFAUDIT_PRO_PLUGIN_DIR . 'worker';
-        $worker_script = $worker_dir . '/worker.js';
-
-        // Check if dependencies are installed
-        if (!file_exists($worker_dir . '/node_modules')) {
-            return array(
-                'success' => false,
-                'message' => 'Worker dependencies not installed. Please run: cd worker && npm install'
-            );
-        }
-
-        // Start worker in background
-        $command = "cd {$worker_dir} && nohup node worker.js > /dev/null 2>&1 & echo $!";
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/worker/class-php-worker.php';
         
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows
-            $command = "start /B node {$worker_script}";
-            exec($command, $output);
-            $pid = null; // Windows doesn't easily return PID
-        } else {
-            // Unix/Linux/Mac
-            $pid = (int)shell_exec($command);
-        }
-
-        if ($pid && $pid > 0) {
-            return array(
-                'success' => true,
-                'pid' => $pid,
-                'message' => 'Worker started'
-            );
-        }
-
+        \PerfAuditPro\Worker\PHP_Worker::start();
+        
         return array(
-            'success' => false,
-            'message' => 'Failed to start worker. Check server logs for details.'
+            'success' => true,
+            'pid' => null,
+            'message' => 'PHP Worker started (runs via WP-Cron)'
         );
     }
 }
