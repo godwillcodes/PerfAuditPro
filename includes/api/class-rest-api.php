@@ -71,6 +71,22 @@ class Rest_API {
             'callback' => array(__CLASS__, 'get_rum_metrics'),
             'permission_callback' => array(__CLASS__, 'check_capability'),
         ));
+
+        register_rest_route('perfaudit-pro/v1', '/submit-audit-results', array(
+            'methods' => 'POST',
+            'callback' => array(__CLASS__, 'handle_submit_audit_results'),
+            'permission_callback' => array(__CLASS__, 'check_token_auth'),
+            'args' => array(
+                'audit_id' => array(
+                    'required' => true,
+                    'type' => 'integer',
+                ),
+                'results' => array(
+                    'required' => true,
+                    'type' => 'object',
+                ),
+            ),
+        ));
     }
 
     /**
@@ -185,6 +201,39 @@ class Rest_API {
         $metrics = $repository->get_aggregated_metrics($url, $days);
 
         return new \WP_REST_Response($metrics, 200);
+    }
+
+    /**
+     * Handle submit audit results from external worker
+     *
+     * @param \WP_REST_Request $request Request object
+     * @return \WP_REST_Response|\WP_Error
+     */
+    public static function handle_submit_audit_results($request) {
+        if (!self::check_rate_limit('submit_results')) {
+            return new \WP_Error('rate_limit_exceeded', 'Rate limit exceeded', array('status' => 429));
+        }
+
+        $audit_id = absint($request->get_param('audit_id'));
+        $results = $request->get_param('results');
+
+        if (!is_array($results)) {
+            return new \WP_Error('invalid_results', 'Results must be an object', array('status' => 400));
+        }
+
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/database/class-audit-repository.php';
+        $repository = new \PerfAuditPro\Database\Audit_Repository();
+
+        $result = $repository->update_audit_results($audit_id, $results);
+
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        return new \WP_REST_Response(array(
+            'success' => true,
+            'message' => 'Audit results updated',
+        ), 200);
     }
 
     /**
