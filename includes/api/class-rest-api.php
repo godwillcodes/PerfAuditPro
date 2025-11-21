@@ -145,9 +145,9 @@ class Rest_API {
      * Handle synthetic audit intake
      *
      * @param \WP_REST_Request $request Request object
-     * @return \WP_REST_Response|\WP_Error
+     * @return \WP_REST_Response|\WP_Error Response object or error
      */
-    public static function handle_synthetic_audit($request) {
+    public static function handle_synthetic_audit(\WP_REST_Request $request) {
         if (!self::check_rate_limit('synthetic_audit')) {
             return new \WP_Error('rate_limit_exceeded', 'Rate limit exceeded', array('status' => 429));
         }
@@ -174,17 +174,24 @@ class Rest_API {
     /**
      * Handle RUM intake
      *
+     * Processes Real User Monitoring metrics from frontend.
+     *
      * @param \WP_REST_Request $request Request object
-     * @return \WP_REST_Response|\WP_Error
+     * @return \WP_REST_Response|\WP_Error Response object or error
      */
-    public static function handle_rum_intake($request) {
+    public static function handle_rum_intake(\WP_REST_Request $request) {
         if (!self::check_rate_limit('rum_intake')) {
             return new \WP_Error('rate_limit_exceeded', 'Rate limit exceeded', array('status' => 429));
         }
 
-        $url = sanitize_url($request->get_param('url'));
-        $metrics = $request->get_param('metrics');
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-validator.php';
+        
+        $url = \PerfAuditPro\Utils\Validator::validate_url($request->get_param('url'));
+        if ($url === null) {
+            return new \WP_Error('invalid_url', 'Invalid URL provided', array('status' => 400));
+        }
 
+        $metrics = $request->get_param('metrics');
         if (!is_array($metrics)) {
             return new \WP_Error('invalid_metrics', 'Metrics must be an object', array('status' => 400));
         }
