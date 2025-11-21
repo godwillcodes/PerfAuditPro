@@ -100,12 +100,18 @@ class PHP_Worker {
                     array('%d')
                 );
             }
-        } catch (Exception $e) {
-            error_log('PerfAudit Pro: Error processing audit ' . $audit_id . ': ' . $e->getMessage());
+        } catch (\Exception $e) {
+            require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
+            \PerfAuditPro\Utils\Logger::error('Error processing audit', array(
+                'audit_id' => $audit_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ));
+            
             $wpdb->update(
                 $table_name,
                 array('status' => 'failed'),
-                array('id' => $audit_id),
+                array('id' => absint($audit_id)),
                 array('%s'),
                 array('%d')
             );

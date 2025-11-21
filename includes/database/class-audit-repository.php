@@ -18,41 +18,56 @@ class Audit_Repository {
      * Create a synthetic audit record
      *
      * @param string $url URL to audit
-     * @param string $audit_type Type of audit
-     * @param string $device Device type (desktop/mobile)
-     * @return int|\WP_Error Audit ID or error
+     * @param string $audit_type Type of audit (default: 'lighthouse')
+     * @param string $device Device type (default: 'desktop')
+     * @return int|\WP_Error Audit ID on success, WP_Error on failure
      */
-    public function create_synthetic_audit($url, $audit_type = 'lighthouse', $device = 'desktop') {
-        global $wpdb;
+    public function create_synthetic_audit(string $url, string $audit_type = 'lighthouse', string $device = 'desktop') {
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-validator.php';
+        
+        // Validate inputs
+        $validated_url = \PerfAuditPro\Utils\Validator::validate_url($url);
+        if ($validated_url === null) {
+            return new \WP_Error('invalid_url', 'Invalid URL provided', array('status' => 400));
+        }
 
+        $validated_audit_type = \PerfAuditPro\Utils\Validator::validate_audit_type($audit_type);
+        $validated_device = \PerfAuditPro\Utils\Validator::validate_device($device);
+
+        global $wpdb;
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
 
         $result = $wpdb->insert(
             $table_name,
             array(
-                'url' => $url,
-                'audit_type' => sanitize_text_field($audit_type),
+                'url' => $validated_url,
+                'audit_type' => $validated_audit_type,
                 'status' => 'pending',
-                'device' => sanitize_text_field($device),
+                'device' => $validated_device,
             ),
             array('%s', '%s', '%s', '%s')
         );
 
         if ($result === false) {
+            require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
+            \PerfAuditPro\Utils\Logger::error('Failed to create audit record', array(
+                'url' => $validated_url,
+                'error' => $wpdb->last_error,
+            ));
             return new \WP_Error('db_error', 'Failed to create audit record', array('status' => 500));
         }
 
-        return $wpdb->insert_id;
+        return (int) $wpdb->insert_id;
     }
 
     /**
      * Update audit with results
      *
      * @param int $audit_id Audit ID
-     * @param array $results Audit results
-     * @return bool|\WP_Error
+     * @param array<string, mixed> $results Audit results
+     * @return bool|\WP_Error True on success, WP_Error on failure
      */
-    public function update_audit_results($audit_id, $results) {
+    public function update_audit_results(int $audit_id, array $results) {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
@@ -102,12 +117,17 @@ class Audit_Repository {
         $result = $wpdb->update(
             $table_name,
             $data,
-            array('id' => $audit_id),
+            array('id' => absint($audit_id)),
             $format,
             array('%d')
         );
 
         if ($result === false) {
+            require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
+            \PerfAuditPro\Utils\Logger::error('Failed to update audit results', array(
+                'audit_id' => $audit_id,
+                'error' => $wpdb->last_error,
+            ));
             return new \WP_Error('db_error', 'Failed to update audit results', array('status' => 500));
         }
 
@@ -122,10 +142,10 @@ class Audit_Repository {
      * Store Lighthouse JSON
      *
      * @param int $audit_id Audit ID
-     * @param string $json JSON string
-     * @return bool|\WP_Error
+     * @param string|array<string, mixed> $json JSON string or array
+     * @return bool|\WP_Error True on success, WP_Error on failure
      */
-    public function store_lighthouse_json($audit_id, $json) {
+    public function store_lighthouse_json(int $audit_id, $json) {
         global $wpdb;
 
         require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/security/class-sanitizer.php';
@@ -158,28 +178,32 @@ class Audit_Repository {
      * Get recent audits
      *
      * @param string|null $url Optional URL filter
-     * @param int $limit Number of results
-     * @param array $filters Additional filters (status, date_from, date_to, search)
-     * @return array
+     * @param int $limit Number of results (default: 10, max: 1000)
+     * @param array<string, mixed> $filters Additional filters (status, date_from, date_to, search)
+     * @return array<int, array<string, mixed>> Array of audit records
      */
-    public function get_recent_audits($url = null, $limit = 10, $filters = array()) {
+    public function get_recent_audits(?string $url = null, int $limit = 10, array $filters = array()): array {
         global $wpdb;
 
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-validator.php';
+        
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
-        $limit = absint($limit);
+        $limit = \PerfAuditPro\Utils\Validator::validate_positive_int($limit, 10, 1, 1000);
 
         $where_conditions = array();
         $where_values = array();
 
-        if ($url) {
-            $url = sanitize_url($url);
-            $where_conditions[] = 'url = %s';
-            $where_values[] = $url;
+        if ($url !== null && $url !== '') {
+            $validated_url = \PerfAuditPro\Utils\Validator::validate_url($url);
+            if ($validated_url !== null) {
+                $where_conditions[] = 'url = %s';
+                $where_values[] = $validated_url;
+            }
         }
 
-        if (!empty($filters['status'])) {
+        if (!empty($filters['status']) && \PerfAuditPro\Utils\Validator::is_valid_status($filters['status'])) {
             $where_conditions[] = 'status = %s';
-            $where_values[] = sanitize_text_field($filters['status']);
+            $where_values[] = strtolower(sanitize_text_field($filters['status']));
         }
 
         if (!empty($filters['search'])) {
@@ -214,31 +238,47 @@ class Audit_Repository {
     /**
      * Delete audits by IDs
      *
-     * @param array $audit_ids Array of audit IDs
-     * @return int Number of deleted audits
+     * @param array<int|string> $audit_ids Array of audit IDs
+     * @return int Number of deleted audits (0 on failure or empty input)
      */
-    public function delete_audits($audit_ids) {
-        global $wpdb;
-
-        if (empty($audit_ids) || !is_array($audit_ids)) {
-            return 0;
-        }
-
-        $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
-        $ids = array_map('absint', $audit_ids);
-        $ids = array_filter($ids);
+    public function delete_audits(array $audit_ids): int {
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-validator.php';
         
-        if (empty($ids)) {
+        $valid_ids = \PerfAuditPro\Utils\Validator::validate_audit_ids($audit_ids);
+        
+        if (empty($valid_ids)) {
             return 0;
         }
 
-        $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
+        
+        // Limit to prevent memory issues with large arrays
+        if (count($valid_ids) > 1000) {
+            require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
+            \PerfAuditPro\Utils\Logger::warning('Too many audit IDs provided for deletion', array(
+                'count' => count($valid_ids),
+            ));
+            $valid_ids = array_slice($valid_ids, 0, 1000);
+        }
+
+        $placeholders = implode(',', array_fill(0, count($valid_ids), '%d'));
         $query = $wpdb->prepare(
             "DELETE FROM $table_name WHERE id IN ($placeholders)",
-            $ids
+            $valid_ids
         );
 
-        return $wpdb->query($query);
+        $deleted = $wpdb->query($query);
+        
+        if ($deleted === false) {
+            require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
+            \PerfAuditPro\Utils\Logger::error('Failed to delete audits', array(
+                'error' => $wpdb->last_error,
+            ));
+            return 0;
+        }
+
+        return (int) $deleted;
     }
 }
 

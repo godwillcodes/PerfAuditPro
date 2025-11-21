@@ -17,11 +17,11 @@ class Rules_Engine {
     /**
      * Evaluate rules against metrics
      *
-     * @param array $metrics Metrics to evaluate
-     * @param array $rules Rules configuration
-     * @return array Evaluation results
+     * @param array<string, mixed> $metrics Metrics to evaluate
+     * @param array<int, array<string, mixed>> $rules Rules configuration
+     * @return array{passed: bool, violations: array<int, array<string, mixed>>, warnings: array<int, array<string, mixed>>} Evaluation results
      */
-    public function evaluate($metrics, $rules) {
+    public function evaluate(array $metrics, array $rules): array {
         $results = array(
             'passed' => true,
             'violations' => array(),
@@ -45,11 +45,11 @@ class Rules_Engine {
     /**
      * Evaluate a single rule
      *
-     * @param array $metrics Metrics
-     * @param array $rule Rule configuration
-     * @return array Evaluation result
+     * @param array<string, mixed> $metrics Metrics
+     * @param array<string, mixed> $rule Rule configuration
+     * @return array<string, mixed> Evaluation result
      */
-    private function evaluate_rule($metrics, $rule) {
+    private function evaluate_rule(array $metrics, array $rule): array {
         $metric_name = $rule['metric'];
         $threshold = $rule['threshold'];
         $operator = $rule['operator'] ?? 'gt';
@@ -88,12 +88,14 @@ class Rules_Engine {
     /**
      * Compare value with threshold
      *
+     * Pure function for comparing values with operators.
+     *
      * @param float $value Value to compare
-     * @param float $threshold Threshold
-     * @param string $operator Comparison operator
-     * @return bool True if condition is met
+     * @param float $threshold Threshold value
+     * @param string $operator Comparison operator (gt, gte, lt, lte, eq, neq)
+     * @return bool True if condition is met (violation condition)
      */
-    private function compare($value, $threshold, $operator) {
+    private function compare(float $value, float $threshold, string $operator): bool {
         switch ($operator) {
             case 'gt':
                 return $value > $threshold;
@@ -115,13 +117,15 @@ class Rules_Engine {
     /**
      * Generate violation message
      *
+     * Pure function for generating human-readable violation messages.
+     *
      * @param string $metric Metric name
      * @param float $value Actual value
-     * @param float $threshold Threshold
-     * @param string $operator Operator
-     * @return string Message
+     * @param float $threshold Threshold value
+     * @param string $operator Comparison operator
+     * @return string Human-readable violation message
      */
-    private function generate_message($metric, $value, $threshold, $operator) {
+    private function generate_message(string $metric, float $value, float $threshold, string $operator): string {
         $metric_labels = array(
             'lcp' => 'Largest Contentful Paint',
             'fid' => 'First Input Delay',
@@ -153,11 +157,11 @@ class Rules_Engine {
     /**
      * Execute enforcement actions
      *
-     * @param array $results Evaluation results
-     * @param array $actions Actions configuration
-     * @return array Action results
+     * @param array<string, mixed> $results Evaluation results
+     * @param array<int, array<string, mixed>> $actions Actions configuration
+     * @return array<int, array<string, mixed>> Action results
      */
-    public function execute_actions($results, $actions) {
+    public function execute_actions(array $results, array $actions): array {
         $action_results = array();
 
         if (!$results['passed'] && !empty($results['violations'])) {
@@ -175,11 +179,11 @@ class Rules_Engine {
     /**
      * Execute a single action
      *
-     * @param array $action Action configuration
-     * @param array $results Evaluation results
-     * @return array|null Action result
+     * @param array<string, mixed> $action Action configuration
+     * @param array<string, mixed> $results Evaluation results
+     * @return array<string, mixed>|null Action result or null if action type is unknown
      */
-    private function execute_action($action, $results) {
+    private function execute_action(array $action, array $results): ?array {
         $type = $action['type'] ?? '';
 
         switch ($type) {
@@ -197,11 +201,11 @@ class Rules_Engine {
     /**
      * Send email notification
      *
-     * @param array $action Action config
-     * @param array $results Evaluation results
-     * @return array Action result
+     * @param array<string, mixed> $action Action configuration
+     * @param array<string, mixed> $results Evaluation results
+     * @return array<string, mixed> Action result
      */
-    private function send_email($action, $results) {
+    private function send_email(array $action, array $results): array {
         $to = $action['to'] ?? get_option('admin_email');
         $subject = $action['subject'] ?? 'Performance Audit Violation';
         $message = $this->format_email_message($results);
@@ -218,12 +222,13 @@ class Rules_Engine {
     /**
      * Log violation
      *
-     * @param array $action Action config
-     * @param array $results Evaluation results
-     * @return array Action result
+     * @param array<string, mixed> $action Action configuration
+     * @param array<string, mixed> $results Evaluation results
+     * @return array<string, mixed> Action result
      */
-    private function log_violation($action, $results) {
-        error_log('PerfAudit Pro Violation: ' . wp_json_encode($results));
+    private function log_violation(array $action, array $results): array {
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
+        \PerfAuditPro\Utils\Logger::warning('Performance violation detected', $results);
 
         return array(
             'type' => 'log',
@@ -234,11 +239,11 @@ class Rules_Engine {
     /**
      * Send webhook
      *
-     * @param array $action Action config
-     * @param array $results Evaluation results
-     * @return array Action result
+     * @param array<string, mixed> $action Action configuration
+     * @param array<string, mixed> $results Evaluation results
+     * @return array<string, mixed> Action result
      */
-    private function send_webhook($action, $results) {
+    private function send_webhook(array $action, array $results): array {
         $url = $action['url'] ?? '';
 
         if (empty($url)) {
@@ -267,10 +272,12 @@ class Rules_Engine {
     /**
      * Format email message
      *
-     * @param array $results Evaluation results
-     * @return string Formatted message
+     * Pure function for formatting email messages from evaluation results.
+     *
+     * @param array<string, mixed> $results Evaluation results
+     * @return string Formatted email message
      */
-    private function format_email_message($results) {
+    private function format_email_message(array $results): string {
         $message = "Performance audit violations detected:\n\n";
 
         foreach ($results['violations'] as $violation) {
