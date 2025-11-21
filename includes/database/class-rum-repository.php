@@ -165,11 +165,13 @@ class RUM_Repository {
     /**
      * Get aggregated metrics
      *
+     * Retrieves aggregated RUM metrics for the specified time period.
+     *
      * @param string|null $url Optional URL filter
-     * @param int $days Number of days
-     * @return array
+     * @param int $days Number of days to retrieve (default: 30, max: 365)
+     * @return array<int, array<string, mixed>> Array of aggregated metric records
      */
-    public function get_aggregated_metrics($url = null, $days = 30) {
+    public function get_aggregated_metrics(?string $url = null, int $days = 30): array {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'perfaudit_rum_metrics';

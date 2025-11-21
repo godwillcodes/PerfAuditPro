@@ -35,24 +35,34 @@ class Plugin {
 
     /**
      * Initialize the plugin
+     *
+     * Loads dependencies and initializes all plugin components.
+     *
+     * @return void
      */
-    public function init() {
+    public function init(): void {
         $this->load_dependencies();
         $this->init_hooks();
     }
 
     /**
      * Load plugin dependencies
+     *
+     * @return void
      */
-    private function load_dependencies() {
+    private function load_dependencies(): void {
         require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/core/class-activator.php';
         require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/core/class-deactivator.php';
     }
 
     /**
      * Initialize WordPress hooks
+     *
+     * Registers all plugin components and their hooks.
+     *
+     * @return void
      */
-    private function init_hooks() {
+    private function init_hooks(): void {
         add_action('plugins_loaded', array($this, 'load_textdomain'));
         \PerfAuditPro\API\Rest_API::init();
         \PerfAuditPro\Cron\Scheduler::init();
@@ -70,9 +80,11 @@ class Plugin {
     }
 
     /**
-     * Load plugin textdomain
+     * Load plugin textdomain for translations
+     *
+     * @return void
      */
-    public function load_textdomain() {
+    public function load_textdomain(): void {
         load_plugin_textdomain(
             'perfaudit-pro',
             false,

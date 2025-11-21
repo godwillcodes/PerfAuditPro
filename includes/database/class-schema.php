@@ -16,8 +16,13 @@ class Schema {
 
     /**
      * Create all database tables
+     *
+     * Creates all custom database tables required by the plugin.
+     * Uses WordPress dbDelta for safe table creation/updates.
+     *
+     * @return void
      */
-    public static function create_tables() {
+    public static function create_tables(): void {
         global $wpdb;
 
         $charset_collate = $wpdb->get_charset_collate();
@@ -31,9 +36,10 @@ class Schema {
      * Create synthetic audits table
      *
      * @param \wpdb $wpdb WordPress database object
-     * @param string $charset_collate Charset and collation
+     * @param string $charset_collate Charset and collation string
+     * @return void
      */
-    private static function create_synthetic_audits_table($wpdb, $charset_collate) {
+    private static function create_synthetic_audits_table(\wpdb $wpdb, string $charset_collate): void {
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
@@ -66,9 +72,10 @@ class Schema {
      * Create Lighthouse JSON storage table
      *
      * @param \wpdb $wpdb WordPress database object
-     * @param string $charset_collate Charset and collation
+     * @param string $charset_collate Charset and collation string
+     * @return void
      */
-    private static function create_lighthouse_json_table($wpdb, $charset_collate) {
+    private static function create_lighthouse_json_table(\wpdb $wpdb, string $charset_collate): void {
         $table_name = $wpdb->prefix . 'perfaudit_lighthouse_json';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
@@ -89,9 +96,10 @@ class Schema {
      * Create RUM aggregated metrics table
      *
      * @param \wpdb $wpdb WordPress database object
-     * @param string $charset_collate Charset and collation
+     * @param string $charset_collate Charset and collation string
+     * @return void
      */
-    private static function create_rum_metrics_table($wpdb, $charset_collate) {
+    private static function create_rum_metrics_table(\wpdb $wpdb, string $charset_collate): void {
         $table_name = $wpdb->prefix . 'perfaudit_rum_metrics';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (

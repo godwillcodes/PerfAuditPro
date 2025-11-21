@@ -16,17 +16,25 @@ class Autoloader {
 
     /**
      * Initialize the autoloader
+     *
+     * Registers the autoloader with PHP's spl_autoload_register.
+     *
+     * @return void
      */
-    public static function init() {
+    public static function init(): void {
         spl_autoload_register(array(__CLASS__, 'autoload'));
     }
 
     /**
      * Autoload classes
      *
-     * @param string $class_name Class name to load
+     * Maps class names to file paths based on namespace and class name.
+     * Only handles classes in the PerfAuditPro namespace.
+     *
+     * @param string $class_name Fully qualified class name
+     * @return void
      */
-    public static function autoload($class_name) {
+    public static function autoload(string $class_name): void {
         if (strpos($class_name, 'PerfAuditPro\\') !== 0) {
             return;
         }

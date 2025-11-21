@@ -16,8 +16,13 @@ class Deactivator {
 
     /**
      * Deactivate the plugin
+     *
+     * Cleans up scheduled events and transients.
+     * Called by WordPress on plugin deactivation.
+     *
+     * @return void
      */
-    public static function deactivate() {
+    public static function deactivate(): void {
         self::clear_scheduled_events();
         flush_rewrite_rules();
     }

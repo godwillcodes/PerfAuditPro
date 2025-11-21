@@ -17,10 +17,12 @@ class Sanitizer {
     /**
      * Sanitize metrics array
      *
-     * @param array $metrics Raw metrics
-     * @return array Sanitized metrics
+     * Pure function that sanitizes RUM metrics, only allowing valid Web Vitals keys.
+     *
+     * @param array<string, mixed> $metrics Raw metrics from frontend
+     * @return array<string, float> Sanitized metrics with only valid keys and float values
      */
-    public static function sanitize_metrics($metrics) {
+    public static function sanitize_metrics(array $metrics): array {
         if (!is_array($metrics)) {
             return array();
         }
@@ -40,8 +42,10 @@ class Sanitizer {
     /**
      * Sanitize JSON string
      *
-     * @param string $json JSON string
-     * @return string|false Sanitized JSON or false on failure
+     * Validates and re-encodes JSON to ensure it's safe for storage.
+     *
+     * @param string|array<string, mixed> $json JSON string or array
+     * @return string|false Sanitized JSON string or false on failure
      */
     public static function sanitize_json($json) {
         if (!is_string($json)) {
@@ -59,10 +63,12 @@ class Sanitizer {
     /**
      * Sanitize IP address
      *
-     * @param string $ip IP address
-     * @return string Sanitized IP
+     * Pure function that validates and sanitizes IP addresses.
+     *
+     * @param string $ip IP address to sanitize
+     * @return string Validated IP address or '0.0.0.0' if invalid
      */
-    public static function sanitize_ip($ip) {
+    public static function sanitize_ip(string $ip): string {
         return filter_var($ip, FILTER_VALIDATE_IP) ?: '0.0.0.0';
     }
 
@@ -70,40 +76,40 @@ class Sanitizer {
      * Escape output for HTML
      *
      * @param mixed $value Value to escape
-     * @return string Escaped value
+     * @return string Escaped HTML-safe string
      */
-    public static function escape_html($value) {
-        return esc_html($value);
+    public static function escape_html($value): string {
+        return esc_html((string) $value);
     }
 
     /**
      * Escape output for JavaScript
      *
      * @param mixed $value Value to escape
-     * @return string Escaped value
+     * @return string Escaped JavaScript-safe string
      */
-    public static function escape_js($value) {
-        return esc_js($value);
+    public static function escape_js($value): string {
+        return esc_js((string) $value);
     }
 
     /**
      * Escape output for attributes
      *
      * @param mixed $value Value to escape
-     * @return string Escaped value
+     * @return string Escaped attribute-safe string
      */
-    public static function escape_attr($value) {
-        return esc_attr($value);
+    public static function escape_attr($value): string {
+        return esc_attr((string) $value);
     }
 
     /**
      * Escape output for URL
      *
      * @param mixed $value Value to escape
-     * @return string Escaped value
+     * @return string Escaped URL-safe string
      */
-    public static function escape_url($value) {
-        return esc_url_raw($value);
+    public static function escape_url($value): string {
+        return esc_url_raw((string) $value);
     }
 }
 
