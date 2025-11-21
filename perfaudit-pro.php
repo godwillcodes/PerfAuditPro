@@ -27,7 +27,7 @@ require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/class-autoloader.php';
 
 PerfAuditPro\Autoloader::init();
 
-// Load core classes required for activation
+// Load core classes required for hooks (before autoloader can handle them)
 require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/core/class-activator.php';
 require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/core/class-deactivator.php';
 require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/core/class-plugin.php';
@@ -35,5 +35,10 @@ require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/core/class-plugin.php';
 register_activation_hook(__FILE__, array('PerfAuditPro\Core\Activator', 'activate'));
 register_deactivation_hook(__FILE__, array('PerfAuditPro\Core\Deactivator', 'deactivate'));
 
-PerfAuditPro\Core\Plugin::get_instance()->init();
+// Initialize plugin after WordPress is loaded
+add_action('plugins_loaded', function() {
+    if (class_exists('PerfAuditPro\Core\Plugin')) {
+        PerfAuditPro\Core\Plugin::get_instance()->init();
+    }
+}, 1);
 
