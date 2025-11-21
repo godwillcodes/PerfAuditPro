@@ -30,21 +30,21 @@
     }
 
     function getScoreStatus(score) {
-        if (score >= 90) return { status: 'good', label: 'Slaying', color: '#10b981' };
-        if (score >= 70) return { status: 'warning', label: 'Could Be Better', color: '#f59e0b' };
-        return { status: 'bad', label: 'Needs Work', color: '#ef4444' };
+        if (score >= 90) return { status: 'good', label: 'Slaying', color: '#007BFF' };
+        if (score >= 70) return { status: 'warning', label: 'Could Be Better', color: '#FF6B6B' };
+        return { status: 'bad', label: 'Needs Work', color: '#FF6B6B' };
     }
 
     function getLCPStatus(lcp) {
-        if (lcp <= 2500) return { status: 'good', label: 'Chef\'s Kiss', color: '#10b981' };
-        if (lcp <= 4000) return { status: 'warning', label: 'It\'s Giving Slow', color: '#f59e0b' };
-        return { status: 'bad', label: 'Users Are Gone', color: '#ef4444' };
+        if (lcp <= 2500) return { status: 'good', label: 'Chef\'s Kiss', color: '#007BFF' };
+        if (lcp <= 4000) return { status: 'warning', label: 'It\'s Giving Slow', color: '#FF6B6B' };
+        return { status: 'bad', label: 'Users Are Gone', color: '#FF6B6B' };
     }
 
     function getCLSStatus(cls) {
-        if (cls <= 0.1) return { status: 'good', label: 'Smooth Like Butter', color: '#10b981' };
-        if (cls <= 0.25) return { status: 'warning', label: 'A Bit Janky', color: '#f59e0b' };
-        return { status: 'bad', label: 'Identity Crisis', color: '#ef4444' };
+        if (cls <= 0.1) return { status: 'good', label: 'Smooth Like Butter', color: '#007BFF' };
+        if (cls <= 0.25) return { status: 'warning', label: 'A Bit Janky', color: '#FF6B6B' };
+        return { status: 'bad', label: 'Identity Crisis', color: '#FF6B6B' };
     }
 
     function renderStatusBadge(containerId, statusObj) {
@@ -101,8 +101,8 @@
         renderRecommendations('audit-timeline-recommendations', recommendations);
 
         const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
-        gradient.addColorStop(1, 'rgba(102, 126, 234, 0.05)');
+        gradient.addColorStop(0, 'rgba(0, 123, 255, 0.2)');
+        gradient.addColorStop(1, 'rgba(0, 123, 255, 0.02)');
 
         new Chart(ctx, {
             type: 'line',
@@ -111,14 +111,14 @@
                 datasets: [{
                     label: 'Performance Score',
                     data: scores,
-                    borderColor: 'rgb(102, 126, 234)',
+                    borderColor: '#007BFF',
                     backgroundColor: gradient,
-                    borderWidth: 3,
+                    borderWidth: 2.5,
                     tension: 0.4,
                     fill: true,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: 'rgb(102, 126, 234)',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#007BFF',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2
                 }]
@@ -213,12 +213,12 @@
                 datasets: [{
                     data: Object.values(ranges),
                     backgroundColor: [
-                        'rgba(16, 185, 129, 0.9)',
-                        'rgba(59, 130, 246, 0.9)',
-                        'rgba(245, 158, 11, 0.9)',
-                        'rgba(239, 68, 68, 0.9)'
+                        '#007BFF',
+                        'rgba(0, 123, 255, 0.7)',
+                        '#FF6B6B',
+                        'rgba(255, 107, 107, 0.8)'
                     ],
-                    borderWidth: 2,
+                    borderWidth: 3,
                     borderColor: '#fff'
                 }]
             },
@@ -271,12 +271,12 @@
         renderRecommendations('rum-lcp-recommendations', recommendations);
 
         const gradient1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient1.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
-        gradient1.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
+        gradient1.addColorStop(0, 'rgba(255, 107, 107, 0.2)');
+        gradient1.addColorStop(1, 'rgba(255, 107, 107, 0.02)');
 
         const gradient2 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient2.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-        gradient2.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+        gradient2.addColorStop(0, 'rgba(0, 123, 255, 0.2)');
+        gradient2.addColorStop(1, 'rgba(0, 123, 255, 0.02)');
 
         new Chart(ctx, {
             type: 'line',
@@ -285,7 +285,7 @@
                 datasets: [{
                     label: 'Average LCP',
                     data: avgLCP,
-                    borderColor: 'rgb(239, 68, 68)',
+                    borderColor: '#FF6B6B',
                     backgroundColor: gradient1,
                     borderWidth: 2,
                     tension: 0.4,
@@ -293,7 +293,7 @@
                 }, {
                     label: 'P75 LCP',
                     data: p75LCP,
-                    borderColor: 'rgb(59, 130, 246)',
+                    borderColor: '#007BFF',
                     backgroundColor: gradient2,
                     borderWidth: 2,
                     tension: 0.4,
@@ -362,12 +362,12 @@
         renderRecommendations('rum-cls-recommendations', recommendations);
 
         const gradient1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient1.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
-        gradient1.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
+        gradient1.addColorStop(0, 'rgba(44, 62, 80, 0.15)');
+        gradient1.addColorStop(1, 'rgba(44, 62, 80, 0.02)');
 
         const gradient2 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient2.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
-        gradient2.addColorStop(1, 'rgba(245, 158, 11, 0.05)');
+        gradient2.addColorStop(0, 'rgba(255, 107, 107, 0.2)');
+        gradient2.addColorStop(1, 'rgba(255, 107, 107, 0.02)');
 
         new Chart(ctx, {
             type: 'line',
@@ -376,7 +376,7 @@
                 datasets: [{
                     label: 'Average CLS',
                     data: avgCLS,
-                    borderColor: 'rgb(139, 92, 246)',
+                    borderColor: '#2C3E50',
                     backgroundColor: gradient1,
                     borderWidth: 2,
                     tension: 0.4,
@@ -384,7 +384,7 @@
                 }, {
                     label: 'P75 CLS',
                     data: p75CLS,
-                    borderColor: 'rgb(245, 158, 11)',
+                    borderColor: '#FF6B6B',
                     backgroundColor: gradient2,
                     borderWidth: 2,
                     tension: 0.4,

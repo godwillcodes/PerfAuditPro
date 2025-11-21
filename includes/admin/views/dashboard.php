@@ -85,7 +85,7 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 
-    <div class="perfaudit-pro-card" style="margin-top: 20px; background: #f0f6fc; border-left: 4px solid #2271b1;">
+    <div class="perfaudit-pro-card" style="margin-top: 20px; background: #f8f9fa; border-left: 3px solid #007BFF;">
         <h3 style="margin-top: 0;"><?php esc_html_e('How Synthetic Audits Work', 'perfaudit-pro'); ?></h3>
         <ol style="line-height: 1.8;">
             <li><strong><?php esc_html_e('Create Audit', 'perfaudit-pro'); ?></strong>: <?php esc_html_e('Use the form above to create a new audit. This creates a "pending" record in the database.', 'perfaudit-pro'); ?></li>
