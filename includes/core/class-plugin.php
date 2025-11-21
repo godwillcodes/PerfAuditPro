@@ -55,6 +55,7 @@ class Plugin {
     private function init_hooks() {
         add_action('plugins_loaded', array($this, 'load_textdomain'));
         \PerfAuditPro\API\Rest_API::init();
+        \PerfAuditPro\Cron\Scheduler::init();
     }
 
     /**
