@@ -87,6 +87,24 @@ class Rest_API {
                 ),
             ),
         ));
+
+        register_rest_route('perfaudit-pro/v1', '/create-audit', array(
+            'methods' => 'POST',
+            'callback' => array(__CLASS__, 'handle_create_audit'),
+            'permission_callback' => array(__CLASS__, 'check_capability'),
+            'args' => array(
+                'url' => array(
+                    'required' => true,
+                    'type' => 'string',
+                    'validate_callback' => array(__CLASS__, 'validate_url'),
+                ),
+                'audit_type' => array(
+                    'required' => false,
+                    'type' => 'string',
+                    'default' => 'lighthouse',
+                ),
+            ),
+        ));
     }
 
     /**
@@ -234,6 +252,33 @@ class Rest_API {
             'success' => true,
             'message' => 'Audit results updated',
         ), 200);
+    }
+
+    /**
+     * Handle create audit from admin dashboard
+     *
+     * @param \WP_REST_Request $request Request object
+     * @return \WP_REST_Response|\WP_Error
+     */
+    public static function handle_create_audit($request) {
+        $url = sanitize_url($request->get_param('url'));
+        $audit_type = sanitize_text_field($request->get_param('audit_type'));
+
+        require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/database/class-audit-repository.php';
+        $repository = new \PerfAuditPro\Database\Audit_Repository();
+
+        $audit_id = $repository->create_synthetic_audit($url, $audit_type);
+
+        if (is_wp_error($audit_id)) {
+            return $audit_id;
+        }
+
+        return new \WP_REST_Response(array(
+            'success' => true,
+            'audit_id' => $audit_id,
+            'status' => 'pending',
+            'message' => 'Audit created. An external worker will process it. See WORKER_SETUP.md for details.',
+        ), 201);
     }
 
     /**

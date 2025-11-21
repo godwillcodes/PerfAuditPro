@@ -230,8 +230,57 @@
         return div.innerHTML;
     }
 
+    function createAudit(url) {
+        return $.ajax({
+            url: PerfAuditPro.apiUrl + 'create-audit',
+            method: 'POST',
+            data: JSON.stringify({
+                url: url,
+                audit_type: 'lighthouse'
+            }),
+            contentType: 'application/json',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', PerfAuditPro.nonce);
+            }
+        });
+    }
+
     $(document).ready(function() {
         console.log('PerfAudit Pro: Initializing dashboard...', PerfAuditPro);
+
+        // Handle create audit form
+        $('#create-audit-form').on('submit', function(e) {
+            e.preventDefault();
+            const url = $('#audit-url').val();
+            const messageDiv = $('#create-audit-message');
+            const submitBtn = $(this).find('button[type="submit"]');
+
+            submitBtn.prop('disabled', true).text('Creating...');
+            messageDiv.html('');
+
+            createAudit(url).done(function(response) {
+                messageDiv.html('<div style="color: #00a32a; padding: 10px; background: #f0f6fc; border-left: 4px solid #00a32a; margin-top: 10px;">' +
+                    'Audit created successfully! ID: ' + response.audit_id + '. ' +
+                    'Note: An external worker is required to process the audit. See WORKER_SETUP.md for details.' +
+                    '</div>');
+                $('#audit-url').val('');
+                
+                // Reload data after a short delay
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            }).fail(function(jqXHR) {
+                let errorMsg = 'Failed to create audit. ';
+                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                    errorMsg += jqXHR.responseJSON.message;
+                } else {
+                    errorMsg += 'Please check the console for details.';
+                }
+                messageDiv.html('<div style="color: #d63638; padding: 10px; background: #fcf0f1; border-left: 4px solid #d63638; margin-top: 10px;">' + errorMsg + '</div>');
+            }).always(function() {
+                submitBtn.prop('disabled', false).text('Create Audit');
+            });
+        });
         
         $.when(fetchAuditResults(), fetchRUMMetrics()).done(function(auditResponse, rumResponse) {
             console.log('PerfAudit Pro: API responses received', auditResponse, rumResponse);
