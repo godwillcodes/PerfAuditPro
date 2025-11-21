@@ -580,7 +580,7 @@
             createAudit(url).done(function(response) {
                 messageDiv.html('<div style="color: #00a32a; padding: 10px; background: #f0f6fc; border-left: 4px solid #00a32a; margin-top: 10px;">' +
                     'Audit created successfully! ID: ' + response.audit_id + '. ' +
-                    'Note: An external worker is required to process the audit. See WORKER_SETUP.md for details.' +
+                    'The built-in PHP worker will process this audit automatically when running.' +
                     '</div>');
                 $('#audit-url').val('');
                 

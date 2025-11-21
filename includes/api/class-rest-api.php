@@ -299,7 +299,7 @@ class Rest_API {
             'success' => true,
             'audit_id' => $audit_id,
             'status' => 'pending',
-            'message' => 'Audit created. An external worker will process it. See worker/README.md for details.',
+            'message' => 'Audit created. The built-in PHP worker will process it automatically when running.',
         ), 201);
     }
 

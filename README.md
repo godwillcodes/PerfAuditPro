@@ -18,7 +18,7 @@ A WordPress performance governance plugin that performs automated website perfor
 - PHP 8.0+
 - WordPress 6.0+
 - WP-CLI compatible
-- External worker for synthetic audits (not executed within WordPress)
+- Built-in PHP worker (no external dependencies required)
 
 ## Installation
 

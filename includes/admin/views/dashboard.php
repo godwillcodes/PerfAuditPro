@@ -32,7 +32,7 @@ if (!defined('ABSPATH')) {
 
     <div class="perfaudit-pro-card" style="margin-bottom: 20px;">
         <h2><?php esc_html_e('Create New Audit', 'perfaudit-pro'); ?></h2>
-        <p><?php esc_html_e('Create a new synthetic audit. Note: You need an external worker to process audits. See WORKER_SETUP.md for details.', 'perfaudit-pro'); ?></p>
+        <p><?php esc_html_e('Create a new synthetic audit. The built-in PHP worker will process it automatically when started.', 'perfaudit-pro'); ?></p>
         <form id="create-audit-form" style="display: flex; gap: 10px; align-items: flex-end;">
             <div style="flex: 1;">
                 <label for="audit-url" style="display: block; margin-bottom: 5px; font-weight: 600;"><?php esc_html_e('URL to Audit', 'perfaudit-pro'); ?></label>
@@ -109,7 +109,7 @@ if (!defined('ABSPATH')) {
             <li><strong><?php esc_html_e('External Worker', 'perfaudit-pro'); ?></strong>: <?php esc_html_e('An external worker (Node.js/Puppeteer) polls for pending audits and runs Lighthouse tests.', 'perfaudit-pro'); ?></li>
             <li><strong><?php esc_html_e('Submit Results', 'perfaudit-pro'); ?></strong>: <?php esc_html_e('The worker submits results back via REST API, and the dashboard displays them.', 'perfaudit-pro'); ?></li>
         </ol>
-        <p><strong><?php esc_html_e('Note', 'perfaudit-pro'); ?>:</strong> <?php esc_html_e('Without an external worker, audits will remain in "pending" status. See WORKER_SETUP.md for setup instructions.', 'perfaudit-pro'); ?></p>
+        <p><strong><?php esc_html_e('Note', 'perfaudit-pro'); ?>:</strong> <?php esc_html_e('Start the worker from the status card above to process audits automatically. The worker uses Google PageSpeed Insights API and requires no external setup.', 'perfaudit-pro'); ?></p>
     </div>
 </div>
 
