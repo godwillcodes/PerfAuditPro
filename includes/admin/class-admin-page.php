@@ -43,7 +43,16 @@ class Admin_Page {
      * @param string $hook Current admin page hook
      */
     public static function enqueue_admin_assets($hook) {
-        if ($hook !== 'toplevel_page_perfaudit-pro') {
+        $perfaudit_pages = array(
+            'toplevel_page_perfaudit-pro',
+            'perfaudit-pro_page_perfaudit-pro-settings',
+            'perfaudit-pro_page_perfaudit-pro-rules',
+            'perfaudit-pro_page_perfaudit-pro-scheduled',
+            'perfaudit-pro_page_perfaudit-pro-notifications',
+            'perfaudit-pro_page_perfaudit-pro-budgets',
+        );
+
+        if (!in_array($hook, $perfaudit_pages)) {
             return;
         }
 

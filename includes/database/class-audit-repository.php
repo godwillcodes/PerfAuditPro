@@ -32,8 +32,9 @@ class Audit_Repository {
                 'url' => $url,
                 'audit_type' => sanitize_text_field($audit_type),
                 'status' => 'pending',
+                'device' => sanitize_text_field($device),
             ),
-            array('%s', '%s', '%s')
+            array('%s', '%s', '%s', '%s')
         );
 
         if ($result === false) {

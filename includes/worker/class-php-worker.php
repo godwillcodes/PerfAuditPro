@@ -79,13 +79,17 @@ class PHP_Worker {
 
         try {
             // Run audit using PageSpeed Insights API
-            $results = self::run_pagespeed_audit($url);
+            $device = isset($audit['device']) ? $audit['device'] : 'desktop';
+            $results = self::run_pagespeed_audit($url, $device);
 
             if ($results && !is_wp_error($results)) {
                 // Update audit with results
                 require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/database/class-audit-repository.php';
                 $repository = new \PerfAuditPro\Database\Audit_Repository();
                 $repository->update_audit_results($audit_id, $results);
+                
+                // Trigger audit completed action
+                do_action('perfaudit_pro_audit_completed', $audit_id, $results);
             } else {
                 // Mark as failed
                 $wpdb->update(
@@ -112,17 +116,21 @@ class PHP_Worker {
      * Run PageSpeed Insights audit
      *
      * @param string $url URL to audit
+     * @param string $device Device type (desktop/mobile)
      * @return array|WP_Error Audit results
      */
-    private static function run_pagespeed_audit($url) {
+    private static function run_pagespeed_audit($url, $device = 'desktop') {
         // Try PageSpeed Insights API first (free, no API key needed for basic usage)
         $api_key = get_option('perfaudit_pro_psi_api_key', '');
+        
+        $device = isset($audit['device']) ? $audit['device'] : 'desktop';
+        $strategy = $device === 'mobile' ? 'MOBILE' : 'DESKTOP';
         
         $api_url = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
         $api_url = add_query_arg(array(
             'url' => urlencode($url),
             'category' => 'PERFORMANCE',
-            'strategy' => 'DESKTOP',
+            'strategy' => $strategy,
         ), $api_url);
 
         if (!empty($api_key)) {
