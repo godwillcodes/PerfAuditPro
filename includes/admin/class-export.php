@@ -27,7 +27,7 @@ class Export {
      */
     public static function export_csv() {
         // Use wp_verify_nonce with the nonce from GET parameter
-        $nonce = isset($_GET['nonce']) ? sanitize_text_field($_GET['nonce']) : '';
+        $nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash($_GET['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'perfaudit_export')) {
             wp_die('Security check failed');
         }
@@ -42,24 +42,24 @@ class Export {
         // Get filters from request
         $filters = array();
         if (isset($_GET['status']) && !empty($_GET['status'])) {
-            $filters['status'] = sanitize_text_field($_GET['status']);
+            $filters['status'] = sanitize_text_field(wp_unslash($_GET['status']));
         }
         if (isset($_GET['search']) && !empty($_GET['search'])) {
-            $filters['search'] = sanitize_text_field($_GET['search']);
+            $filters['search'] = sanitize_text_field(wp_unslash($_GET['search']));
         }
         if (isset($_GET['date_from']) && !empty($_GET['date_from'])) {
-            $filters['date_from'] = sanitize_text_field($_GET['date_from']);
+            $filters['date_from'] = sanitize_text_field(wp_unslash($_GET['date_from']));
         }
         if (isset($_GET['date_to']) && !empty($_GET['date_to'])) {
-            $filters['date_to'] = sanitize_text_field($_GET['date_to']);
+            $filters['date_to'] = sanitize_text_field(wp_unslash($_GET['date_to']));
         }
 
-        $url = isset($_GET['url']) ? sanitize_url($_GET['url']) : null;
+        $url = isset($_GET['url']) ? sanitize_url(wp_unslash($_GET['url'])) : null;
         $limit = isset($_GET['limit']) ? absint($_GET['limit']) : 1000;
         $audits = $repository->get_recent_audits($url, $limit, $filters);
 
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="site-performance-tracker-audits-' . date('Y-m-d') . '.csv"');
+        header('Content-Disposition: attachment; filename="site-performance-tracker-audits-' . gmdate('Y-m-d') . '.csv"');
 
         $output = fopen('php://output', 'w');
         
@@ -87,6 +87,7 @@ class Export {
             ));
         }
 
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- php://output stream requires fclose()
         fclose($output);
         exit;
     }
@@ -96,7 +97,7 @@ class Export {
      */
     public static function export_pdf() {
         // Use wp_verify_nonce with the nonce from GET parameter
-        $nonce = isset($_GET['nonce']) ? sanitize_text_field($_GET['nonce']) : '';
+        $nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash($_GET['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'perfaudit_export')) {
             wp_die('Security check failed');
         }
@@ -111,26 +112,27 @@ class Export {
         // Get filters from request
         $filters = array();
         if (isset($_GET['status']) && !empty($_GET['status'])) {
-            $filters['status'] = sanitize_text_field($_GET['status']);
+            $filters['status'] = sanitize_text_field(wp_unslash($_GET['status']));
         }
         if (isset($_GET['search']) && !empty($_GET['search'])) {
-            $filters['search'] = sanitize_text_field($_GET['search']);
+            $filters['search'] = sanitize_text_field(wp_unslash($_GET['search']));
         }
         if (isset($_GET['date_from']) && !empty($_GET['date_from'])) {
-            $filters['date_from'] = sanitize_text_field($_GET['date_from']);
+            $filters['date_from'] = sanitize_text_field(wp_unslash($_GET['date_from']));
         }
         if (isset($_GET['date_to']) && !empty($_GET['date_to'])) {
-            $filters['date_to'] = sanitize_text_field($_GET['date_to']);
+            $filters['date_to'] = sanitize_text_field(wp_unslash($_GET['date_to']));
         }
 
-        $url = isset($_GET['url']) ? sanitize_url($_GET['url']) : null;
+        $url = isset($_GET['url']) ? sanitize_url(wp_unslash($_GET['url'])) : null;
         $limit = isset($_GET['limit']) ? absint($_GET['limit']) : 100;
         $audits = $repository->get_recent_audits($url, $limit, $filters);
 
         $html = self::generate_report_html($audits);
 
         header('Content-Type: text/html; charset=utf-8');
-        header('Content-Disposition: attachment; filename="site-performance-tracker-report-' . date('Y-m-d') . '.html"');
+        header('Content-Disposition: attachment; filename="site-performance-tracker-report-' . esc_attr(gmdate('Y-m-d')) . '.html"');
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML is generated with proper escaping in generate_report_html()
         echo $html;
         exit;
     }
@@ -144,7 +146,7 @@ class Export {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Site Performance Tracker Report - <?php echo date('Y-m-d'); ?></title>
+            <title>Site Performance Tracker Report - <?php echo esc_html(gmdate('Y-m-d')); ?></title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 h1 { color: #007BFF; }
@@ -156,7 +158,7 @@ class Export {
         </head>
         <body>
             <h1>Site Performance Tracker Report</h1>
-            <p>Generated: <?php echo current_time('mysql'); ?></p>
+            <p>Generated: <?php echo esc_html(current_time('mysql')); ?></p>
             <table>
                 <thead>
                     <tr>

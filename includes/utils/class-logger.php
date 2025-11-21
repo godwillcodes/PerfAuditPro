@@ -44,6 +44,7 @@ class Logger {
 
         $log_entry = self::format_log_entry($level, $message, $context);
         
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- error_log() is used for logging plugin errors, not debug code
         if (function_exists('error_log')) {
             error_log($log_entry);
         }

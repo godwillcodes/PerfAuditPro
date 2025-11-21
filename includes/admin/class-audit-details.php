@@ -32,12 +32,17 @@ class Audit_Details {
             return;
         }
 
-        $audit_id = absint($_GET['audit_id']);
+        if (!isset($_GET['audit_id'])) {
+            wp_send_json_error(array('message' => 'Audit ID missing'));
+            return;
+        }
+        $audit_id = absint(wp_unslash($_GET['audit_id']));
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), cannot be prepared
         $audit = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE id = %d",
+            "SELECT * FROM `{$table_name}` WHERE id = %d",
             $audit_id
         ), ARRAY_A);
 
@@ -48,8 +53,9 @@ class Audit_Details {
 
         // Get Lighthouse JSON if available
         $json_table = $wpdb->prefix . 'perfaudit_lighthouse_json';
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), cannot be prepared
         $lighthouse_json = $wpdb->get_var($wpdb->prepare(
-            "SELECT full_json FROM $json_table WHERE audit_id = %d LIMIT 1",
+            "SELECT full_json FROM `{$json_table}` WHERE audit_id = %d LIMIT 1",
             $audit_id
         ));
 

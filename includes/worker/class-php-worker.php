@@ -39,9 +39,10 @@ class PHP_Worker {
         self::reset_stuck_audits();
 
         // Get pending audits (limit to prevent timeout)
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), cannot be prepared. Worker needs direct queries for real-time processing.
         $pending_audits = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM $table_name WHERE status = %s ORDER BY created_at ASC LIMIT %d",
+                "SELECT * FROM `{$table_name}` WHERE status = %s ORDER BY created_at ASC LIMIT %d",
                 'pending',
                 5
             ),
@@ -73,9 +74,10 @@ class PHP_Worker {
 
         // Reset audits that have been processing for more than the timeout period
         // We check created_at as a proxy - if audit was created more than timeout ago and still processing, it's stuck
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), cannot be prepared. Worker needs direct queries for real-time processing.
         $result = $wpdb->query(
             $wpdb->prepare(
-                "UPDATE $table_name 
+                "UPDATE `{$table_name}` 
                 SET status = 'pending', worker_id = NULL 
                 WHERE status = 'processing' 
                 AND created_at < DATE_SUB(NOW(), INTERVAL %d MINUTE)
@@ -135,6 +137,7 @@ class PHP_Worker {
         if ($validated_url === null) {
             require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/utils/class-logger.php';
             \PerfAuditPro\Utils\Logger::warning('Invalid URL in audit record', array('url' => $url));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Worker needs direct queries for real-time status updates
             $wpdb->update(
                 $table_name,
                 array('status' => 'failed'),
@@ -146,6 +149,7 @@ class PHP_Worker {
         }
 
         // Mark as processing
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Worker needs direct queries for real-time status updates
         $wpdb->update(
             $table_name,
             array('status' => 'processing'),
@@ -169,6 +173,7 @@ class PHP_Worker {
                 do_action('perfaudit_pro_audit_completed', $audit_id, $results);
             } else {
                 // Mark as failed
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Worker needs direct queries for real-time status updates
                 $wpdb->update(
                     $table_name,
                     array('status' => 'failed'),
@@ -185,6 +190,7 @@ class PHP_Worker {
                 'trace' => $e->getTraceAsString(),
             ));
             
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Worker needs direct queries for real-time status updates
             $wpdb->update(
                 $table_name,
                 array('status' => 'failed'),

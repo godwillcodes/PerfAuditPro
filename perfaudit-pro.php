@@ -2,16 +2,18 @@
 /**
  * Plugin Name: Site Performance Tracker
  * Plugin URI: https://github.com/godwillcodes/PerfAuditPro
- * Description: Track and monitor your website's performance with automated synthetic audits powered by Google PageSpeed Insights API and Real User Monitoring (RUM) metrics. Get comprehensive performance insights, Core Web Vitals tracking, and actionable recommendations to improve your site's speed and user experience.
+ * Description: Track website performance with automated audits via Google PageSpeed Insights API and Real User Monitoring. Get Core Web Vitals insights.
  * Version: 1.0.0
  * Author: Godwill Barasa
  * Author URI: https://github.com/godwillcodes/PerfAuditPro
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: perfaudit-pro
+ * Text Domain: site-performance-tracker
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.0
+ * Tested up to: 6.8
+ * Stable tag: 1.0.0
  * Namespace: PerfAuditPro
  */
 

@@ -27,10 +27,10 @@ class Admin_Page {
      */
     public static function add_admin_menu() {
         add_menu_page(
-            __('Site Performance Tracker', 'perfaudit-pro'),
-            __('Site Performance Tracker', 'perfaudit-pro'),
+            __('Site Performance Tracker', 'site-performance-tracker'),
+            __('Site Performance Tracker', 'site-performance-tracker'),
             'manage_options',
-            'perfaudit-pro',
+            'site-performance-tracker',
             array(__CLASS__, 'render_page'),
             'dashicons-performance',
             30
@@ -93,7 +93,7 @@ class Admin_Page {
      */
     public static function render_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'perfaudit-pro'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'site-performance-tracker'));
         }
 
         include PERFAUDIT_PRO_PLUGIN_DIR . 'includes/admin/views/dashboard.php';

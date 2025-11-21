@@ -34,7 +34,26 @@ class Notifications {
             return;
         }
 
-        $notifications = json_decode(stripslashes($_POST['notifications']), true);
+        if (!isset($_POST['notifications'])) {
+            wp_send_json_error(array('message' => 'Notifications data missing'));
+            return;
+        }
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON data is sanitized after decode
+        $notifications = json_decode(stripslashes(wp_unslash($_POST['notifications'])), true);
+        
+        if (!is_array($notifications)) {
+            wp_send_json_error(array('message' => 'Invalid notifications data'));
+            return;
+        }
+        
+        // Sanitize notifications array
+        $notifications = array_map(function($notification) {
+            if (is_array($notification)) {
+                return array_map('sanitize_text_field', $notification);
+            }
+            return sanitize_text_field($notification);
+        }, $notifications);
+        
         update_option('perfaudit_pro_notifications', $notifications);
         wp_send_json_success();
     }
@@ -44,14 +63,14 @@ class Notifications {
      */
     public static function add_menu() {
         $count = self::get_unread_count();
-        $menu_title = __('Notifications', 'perfaudit-pro');
+        $menu_title = __('Notifications', 'site-performance-tracker');
         if ($count > 0) {
             $menu_title .= ' <span class="awaiting-mod">' . $count . '</span>';
         }
 
         add_submenu_page(
-            'perfaudit-pro',
-            __('Notifications', 'perfaudit-pro'),
+            'site-performance-tracker',
+            __('Notifications', 'site-performance-tracker'),
             $menu_title,
             'manage_options',
             'perfaudit-pro-notifications',
@@ -152,7 +171,7 @@ class Notifications {
      */
     public static function render_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'perfaudit-pro'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'site-performance-tracker'));
         }
 
         include PERFAUDIT_PRO_PLUGIN_DIR . 'includes/admin/views/notifications.php';

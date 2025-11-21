@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $rules = \PerfAuditPro\Admin\Rules_Page::get_rules();
 ?>
 <div class="wrap perfaudit-pro-rules">
@@ -24,7 +25,7 @@ $rules = \PerfAuditPro\Admin\Rules_Page::get_rules();
     </div>
 
     <div id="rules-list">
-        <?php foreach ($rules as $rule): ?>
+        <?php foreach ($rules as $rule): // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global ?>
             <div class="perfaudit-pro-card rule-item" data-rule-id="<?php echo esc_attr($rule['id']); ?>">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
@@ -151,7 +152,7 @@ $rules = \PerfAuditPro\Admin\Rules_Page::get_rules();
 
 <script>
 jQuery(document).ready(function($) {
-    const nonce = '<?php echo wp_create_nonce('perfaudit_rules'); ?>';
+    const nonce = '<?php echo esc_js(wp_create_nonce('perfaudit_rules')); ?>';
 
     $('#add-rule-btn, .edit-rule').on('click', function() {
         const ruleData = $(this).data('rule');

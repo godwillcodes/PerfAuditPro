@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $schedules = get_option('perfaudit_pro_scheduled_audits', array());
 ?>
 <div class="wrap perfaudit-pro-scheduled">
@@ -29,7 +30,7 @@ $schedules = get_option('perfaudit_pro_scheduled_audits', array());
                 <p style="text-align: center; color: #64748b; padding: 40px;">No scheduled audits yet. Click "Add Schedule" to create one.</p>
             </div>
         <?php else: ?>
-            <?php foreach ($schedules as $schedule): ?>
+            <?php foreach ($schedules as $schedule): // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global ?>
                 <div class="perfaudit-pro-card schedule-item" data-schedule-id="<?php echo esc_attr($schedule['id']); ?>">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div style="flex: 1;">
@@ -149,7 +150,7 @@ $schedules = get_option('perfaudit_pro_scheduled_audits', array());
 
 <script>
 jQuery(document).ready(function($) {
-    const nonce = '<?php echo wp_create_nonce('perfaudit_schedules'); ?>';
+    const nonce = '<?php echo esc_js(wp_create_nonce('perfaudit_schedules')); ?>';
 
     $('#add-schedule-btn, .edit-schedule').on('click', function() {
         const scheduleData = $(this).data('schedule');

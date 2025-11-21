@@ -30,9 +30,9 @@ class Scheduled_Audits {
      */
     public static function add_menu() {
         add_submenu_page(
-            'perfaudit-pro',
-            __('Scheduled Audits', 'perfaudit-pro'),
-            __('Scheduled Audits', 'perfaudit-pro'),
+            'site-performance-tracker',
+            __('Scheduled Audits', 'site-performance-tracker'),
+            __('Scheduled Audits', 'site-performance-tracker'),
             'manage_options',
             'perfaudit-pro-scheduled',
             array(__CLASS__, 'render_page')
@@ -110,7 +110,23 @@ class Scheduled_Audits {
             return;
         }
 
-        $schedule_data = json_decode(stripslashes($_POST['schedule']), true);
+        if (!isset($_POST['schedule'])) {
+            wp_send_json_error(array('message' => 'Schedule data missing'));
+            return;
+        }
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON data is sanitized after decode
+        $schedule_data = json_decode(stripslashes(wp_unslash($_POST['schedule'])), true);
+        
+        if (!is_array($schedule_data)) {
+            wp_send_json_error(array('message' => 'Invalid schedule data'));
+            return;
+        }
+        
+        // Sanitize schedule data
+        $schedule_data = array_map('sanitize_text_field', $schedule_data);
+        if (isset($schedule_data['urls']) && is_array($schedule_data['urls'])) {
+            $schedule_data['urls'] = array_map('esc_url_raw', $schedule_data['urls']);
+        }
         
         if (empty($schedule_data['id'])) {
             $schedule_data['id'] = 'schedule_' . time();
@@ -146,7 +162,11 @@ class Scheduled_Audits {
             return;
         }
 
-        $schedule_id = sanitize_text_field($_POST['schedule_id']);
+        if (!isset($_POST['schedule_id'])) {
+            wp_send_json_error(array('message' => 'Schedule ID missing'));
+            return;
+        }
+        $schedule_id = sanitize_text_field(wp_unslash($_POST['schedule_id']));
         $schedules = get_option('perfaudit_pro_scheduled_audits', array());
 
         $schedules = array_filter($schedules, function($schedule) use ($schedule_id) {
@@ -162,7 +182,7 @@ class Scheduled_Audits {
      */
     public static function render_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'perfaudit-pro'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'site-performance-tracker'));
         }
 
         include PERFAUDIT_PRO_PLUGIN_DIR . 'includes/admin/views/scheduled-audits.php';

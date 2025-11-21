@@ -29,9 +29,9 @@ class Rules_Page {
      */
     public static function add_rules_menu() {
         add_submenu_page(
-            'perfaudit-pro',
-            __('Performance Rules', 'perfaudit-pro'),
-            __('Rules', 'perfaudit-pro'),
+            'site-performance-tracker',
+            __('Performance Rules', 'site-performance-tracker'),
+            __('Rules', 'site-performance-tracker'),
             'manage_options',
             'perfaudit-pro-rules',
             array(__CLASS__, 'render_page')
@@ -96,7 +96,23 @@ class Rules_Page {
             return;
         }
 
-        $rule_data = json_decode(stripslashes($_POST['rule']), true);
+        if (!isset($_POST['rule'])) {
+            wp_send_json_error(array('message' => 'Rule data missing'));
+            return;
+        }
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON data is sanitized after decode
+        $rule_data = json_decode(stripslashes(wp_unslash($_POST['rule'])), true);
+        
+        if (!is_array($rule_data)) {
+            wp_send_json_error(array('message' => 'Invalid rule data'));
+            return;
+        }
+        
+        // Sanitize rule data
+        $rule_data = array_map('sanitize_text_field', $rule_data);
+        if (isset($rule_data['threshold'])) {
+            $rule_data['threshold'] = floatval($rule_data['threshold']);
+        }
         
         if (empty($rule_data['id'])) {
             $rule_data['id'] = 'rule_' . time();
@@ -132,7 +148,11 @@ class Rules_Page {
             return;
         }
 
-        $rule_id = sanitize_text_field($_POST['rule_id']);
+        if (!isset($_POST['rule_id'])) {
+            wp_send_json_error(array('message' => 'Rule ID missing'));
+            return;
+        }
+        $rule_id = sanitize_text_field(wp_unslash($_POST['rule_id']));
         $rules = self::get_rules();
 
         $rules = array_filter($rules, function($rule) use ($rule_id) {
@@ -154,8 +174,12 @@ class Rules_Page {
             return;
         }
 
-        $rule_id = sanitize_text_field($_POST['rule_id']);
-        $enabled = filter_var($_POST['enabled'], FILTER_VALIDATE_BOOLEAN);
+        if (!isset($_POST['rule_id']) || !isset($_POST['enabled'])) {
+            wp_send_json_error(array('message' => 'Rule ID or enabled status missing'));
+            return;
+        }
+        $rule_id = sanitize_text_field(wp_unslash($_POST['rule_id']));
+        $enabled = filter_var(wp_unslash($_POST['enabled']), FILTER_VALIDATE_BOOLEAN);
         $rules = self::get_rules();
 
         foreach ($rules as $key => $rule) {
@@ -174,7 +198,7 @@ class Rules_Page {
      */
     public static function render_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'perfaudit-pro'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'site-performance-tracker'));
         }
 
         include PERFAUDIT_PRO_PLUGIN_DIR . 'includes/admin/views/rules.php';

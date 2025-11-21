@@ -27,11 +27,14 @@ class RUM_Repository {
         $table_name = $wpdb->prefix . 'perfaudit_rum_metrics';
         $date = current_time('Y-m-d');
 
-        $existing = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE url = %s AND date = %s",
-            $url,
-            $date
-        ));
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, values are prepared
+        $existing = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM `{$table_name}` WHERE url = %s AND date = %s",
+                $url,
+                $date
+            )
+        );
 
         $metric_values = $this->extract_metrics($metrics);
 
@@ -98,6 +101,7 @@ class RUM_Repository {
             $format[] = '%f';
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository needs direct queries for data operations
         $result = $wpdb->insert($table_name, $data, $format);
 
         if ($result === false) {
@@ -126,7 +130,8 @@ class RUM_Repository {
 
         $table_name = $wpdb->prefix . 'perfaudit_rum_metrics';
 
-        $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id), ARRAY_A);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, value is prepared
+        $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM `{$table_name}` WHERE id = %d", $id), ARRAY_A);
 
         if (!$existing) {
             return new \WP_Error('not_found', 'Metrics record not found', array('status' => 404));
@@ -154,6 +159,7 @@ class RUM_Repository {
             $format[] = '%f';
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Repository needs direct queries for data operations
         $result = $wpdb->update(
             $table_name,
             $data,
@@ -190,18 +196,25 @@ class RUM_Repository {
         
         $table_name = $wpdb->prefix . 'perfaudit_rum_metrics';
         $days = \PerfAuditPro\Utils\Validator::validate_positive_int($days, 30, 1, 365);
-        $start_date = date('Y-m-d', strtotime("-{$days} days"));
+        $start_date = gmdate('Y-m-d', strtotime("-{$days} days"));
 
-        $where = $wpdb->prepare(' WHERE date >= %s', $start_date);
+        $where_conditions = array('date >= %s');
+        $where_values = array($start_date);
+        
         if ($url !== null && $url !== '') {
             $validated_url = \PerfAuditPro\Utils\Validator::validate_url($url);
             if ($validated_url !== null) {
-                $where .= $wpdb->prepare(' AND url = %s', $validated_url);
+                $where_conditions[] = 'url = %s';
+                $where_values[] = $validated_url;
             }
         }
 
-        $query = "SELECT * FROM $table_name $where ORDER BY date DESC";
-        return $wpdb->get_results($query, ARRAY_A);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, values are prepared
+        $query = "SELECT * FROM `{$table_name}` WHERE " . implode(' AND ', $where_conditions) . " ORDER BY date DESC";
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
+        $prepared_query = $wpdb->prepare($query, $where_values);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared via $wpdb->prepare()
+        return $wpdb->get_results($prepared_query, ARRAY_A);
     }
 }
 

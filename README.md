@@ -1,5 +1,14 @@
 # Site Performance Tracker
 
+**Contributors:** godwillcodes  
+**Tags:** performance, monitoring, page speed, core web vitals, lighthouse  
+**Requires at least:** 6.0  
+**Tested up to:** 6.8  
+**Stable tag:** 1.0.0  
+**Requires PHP:** 8.0  
+**License:** GPLv2 or later  
+**License URI:** https://www.gnu.org/licenses/gpl-2.0.html
+
 > Professional WordPress performance monitoring and optimization plugin powered by Google PageSpeed Insights API and Real User Monitoring.
 
 [![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)

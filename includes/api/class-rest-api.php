@@ -367,13 +367,13 @@ class Rest_API {
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
         $limit = absint($request->get_param('limit')) ?: 10;
 
-        $query = $wpdb->prepare(
-            "SELECT id, url, audit_type, created_at FROM $table_name WHERE status = %s ORDER BY created_at ASC LIMIT %d",
-            'pending',
-            $limit
-        );
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, values are prepared
+        $query = "SELECT id, url, audit_type, created_at FROM `{$table_name}` WHERE status = %s ORDER BY created_at ASC LIMIT %d";
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
+        $prepared_query = $wpdb->prepare($query, 'pending', $limit);
 
-        $audits = $wpdb->get_results($query, ARRAY_A);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared via $wpdb->prepare(), REST API needs direct queries for real-time data retrieval
+        $audits = $wpdb->get_results($prepared_query, ARRAY_A);
 
         return new \WP_REST_Response($audits, 200);
     }
@@ -395,6 +395,7 @@ class Rest_API {
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
 
         // Try to update only if status is still pending (prevent race conditions)
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- REST API needs direct queries for atomic updates
         $result = $wpdb->update(
             $table_name,
             array(
@@ -518,7 +519,7 @@ class Rest_API {
     private static function check_rate_limit($endpoint) {
         require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/security/class-sanitizer.php';
         
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '0.0.0.0';
         $ip = \PerfAuditPro\Security\Sanitizer::sanitize_ip($ip);
         $endpoint = sanitize_key($endpoint);
         

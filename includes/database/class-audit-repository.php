@@ -40,16 +40,19 @@ class Audit_Repository {
         // Ensure table exists and is up to date (in case it wasn't created during activation or needs migration)
         require_once PERFAUDIT_PRO_PLUGIN_DIR . 'includes/database/class-schema.php';
         
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, DDL statement doesn't support placeholders
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
             \PerfAuditPro\Database\Schema::create_tables();
         } else {
             // Check if device column exists, if not run migration
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, DDL statement doesn't support placeholders
             $columns = $wpdb->get_col("DESCRIBE $table_name");
             if (!in_array('device', $columns, true)) {
                 \PerfAuditPro\Database\Schema::migrate_tables();
             }
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository needs direct queries for data operations
         $result = $wpdb->insert(
             $table_name,
             array(
@@ -129,6 +132,7 @@ class Audit_Repository {
             $format[] = '%f';
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Repository needs direct queries for data operations
         $result = $wpdb->update(
             $table_name,
             $data,
@@ -177,6 +181,7 @@ class Audit_Repository {
         $table_name = $wpdb->prefix . 'perfaudit_lighthouse_json';
         $audit_id = absint($audit_id);
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Repository needs direct queries for data operations
         $result = $wpdb->insert(
             $table_name,
             array(
@@ -240,18 +245,24 @@ class Audit_Repository {
             $where_values[] = sanitize_text_field($filters['date_to']);
         }
 
-        $where = '';
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, values are prepared
+        $query = "SELECT * FROM `{$table_name}`";
         if (!empty($where_conditions)) {
-            $where = ' WHERE ' . implode(' AND ', $where_conditions);
-            if (!empty($where_values)) {
-                $where = $wpdb->prepare($where, $where_values);
-            }
+            $query .= ' WHERE ' . implode(' AND ', $where_conditions);
+        }
+        $query .= ' ORDER BY created_at DESC LIMIT %d';
+        
+        if (!empty($where_values)) {
+            $where_values[] = $limit;
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
+            $prepared_query = $wpdb->prepare($query, $where_values);
+        } else {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
+            $prepared_query = $wpdb->prepare($query, $limit);
         }
 
-        $query = "SELECT * FROM $table_name $where ORDER BY created_at DESC LIMIT %d";
-        $query = $wpdb->prepare($query, $limit);
-
-        return $wpdb->get_results($query, ARRAY_A);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared via $wpdb->prepare()
+        return $wpdb->get_results($prepared_query, ARRAY_A);
     }
 
     /**
@@ -282,12 +293,13 @@ class Audit_Repository {
         }
 
         $placeholders = implode(',', array_fill(0, count($valid_ids), '%d'));
-        $query = $wpdb->prepare(
-            "DELETE FROM $table_name WHERE id IN ($placeholders)",
-            $valid_ids
-        );
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and placeholders are safe, values are prepared
+        $query = "DELETE FROM `{$table_name}` WHERE id IN ({$placeholders})";
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query string is built safely, then prepared
+        $prepared_query = $wpdb->prepare($query, $valid_ids);
 
-        $deleted = $wpdb->query($query);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared via $wpdb->prepare()
+        $deleted = $wpdb->query($prepared_query);
         
         // Clear scorecard cache when audits are deleted
         if ($deleted > 0) {

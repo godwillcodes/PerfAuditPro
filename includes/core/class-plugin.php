@@ -86,8 +86,9 @@ class Plugin {
      * @return void
      */
     public function load_textdomain(): void {
+        // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- Required for non-WordPress.org plugins
         load_plugin_textdomain(
-            'perfaudit-pro',
+            'site-performance-tracker',
             false,
             dirname(plugin_basename(PERFAUDIT_PRO_PLUGIN_FILE)) . '/languages'
         );

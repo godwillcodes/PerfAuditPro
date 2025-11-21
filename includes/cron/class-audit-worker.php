@@ -22,9 +22,10 @@ class Audit_Worker {
 
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), cannot be prepared. Worker needs direct queries for real-time processing.
         $pending_audits = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM $table_name WHERE status = %s ORDER BY created_at ASC LIMIT %d",
+                "SELECT * FROM `{$table_name}` WHERE status = %s ORDER BY created_at ASC LIMIT %d",
                 'pending',
                 10
             ),
@@ -50,6 +51,7 @@ class Audit_Worker {
 
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Worker needs direct queries for real-time processing
         $wpdb->update(
             $table_name,
             array('status' => 'processing'),

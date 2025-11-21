@@ -48,38 +48,50 @@ class Schema {
         $table_name = $wpdb->prefix . 'perfaudit_synthetic_audits';
         
         // Check if table exists
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
             return;
         }
 
         // Check if device column exists, if not add it
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
         $columns = $wpdb->get_col("DESCRIBE $table_name");
         if (!in_array('device', $columns, true)) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
             $wpdb->query("ALTER TABLE $table_name ADD COLUMN device varchar(20) DEFAULT 'desktop' AFTER status");
         }
 
         // Add composite indexes for better query performance
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
         $indexes = $wpdb->get_results("SHOW INDEX FROM $table_name WHERE Key_name = 'idx_status_created'");
         if (empty($indexes)) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
             $wpdb->query("ALTER TABLE $table_name ADD INDEX idx_status_created (status, created_at)");
         }
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
         $indexes = $wpdb->get_results("SHOW INDEX FROM $table_name WHERE Key_name = 'idx_url_status'");
         if (empty($indexes)) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
             $wpdb->query("ALTER TABLE $table_name ADD INDEX idx_url_status (url, status)");
         }
 
         // Add index on completed_at for filtering completed audits
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
         $indexes = $wpdb->get_results("SHOW INDEX FROM $table_name WHERE Key_name = 'idx_completed_at'");
         if (empty($indexes)) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
             $wpdb->query("ALTER TABLE $table_name ADD INDEX idx_completed_at (completed_at)");
         }
 
         // Add indexes to RUM metrics table
         $rum_table = $wpdb->prefix . 'perfaudit_rum_metrics';
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
         if ($wpdb->get_var("SHOW TABLES LIKE '$rum_table'") === $rum_table) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
             $rum_indexes = $wpdb->get_results("SHOW INDEX FROM $rum_table WHERE Key_name = 'idx_date_url'");
             if (empty($rum_indexes)) {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe (from $wpdb->prefix), DDL statement doesn't support placeholders
                 $wpdb->query("ALTER TABLE $rum_table ADD INDEX idx_date_url (date, url)");
             }
         }

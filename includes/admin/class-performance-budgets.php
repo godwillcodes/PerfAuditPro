@@ -29,9 +29,9 @@ class Performance_Budgets {
      */
     public static function add_menu() {
         add_submenu_page(
-            'perfaudit-pro',
-            __('Performance Budgets', 'perfaudit-pro'),
-            __('Budgets', 'perfaudit-pro'),
+            'site-performance-tracker',
+            __('Performance Budgets', 'site-performance-tracker'),
+            __('Budgets', 'site-performance-tracker'),
             'manage_options',
             'perfaudit-pro-budgets',
             array(__CLASS__, 'render_page')
@@ -92,7 +92,23 @@ class Performance_Budgets {
             return;
         }
 
-        $budget_data = json_decode(stripslashes($_POST['budget']), true);
+        if (!isset($_POST['budget'])) {
+            wp_send_json_error(array('message' => 'Budget data missing'));
+            return;
+        }
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON data is sanitized after decode
+        $budget_data = json_decode(stripslashes(wp_unslash($_POST['budget'])), true);
+        
+        if (!is_array($budget_data)) {
+            wp_send_json_error(array('message' => 'Invalid budget data'));
+            return;
+        }
+        
+        // Sanitize budget data
+        $budget_data = array_map('sanitize_text_field', $budget_data);
+        if (isset($budget_data['limit'])) {
+            $budget_data['limit'] = floatval($budget_data['limit']);
+        }
         
         if (empty($budget_data['id'])) {
             $budget_data['id'] = 'budget_' . time();
@@ -128,7 +144,11 @@ class Performance_Budgets {
             return;
         }
 
-        $budget_id = sanitize_text_field($_POST['budget_id']);
+        if (!isset($_POST['budget_id'])) {
+            wp_send_json_error(array('message' => 'Budget ID missing'));
+            return;
+        }
+        $budget_id = sanitize_text_field(wp_unslash($_POST['budget_id']));
         $budgets = self::get_budgets();
 
         $budgets = array_filter($budgets, function($budget) use ($budget_id) {
@@ -144,7 +164,7 @@ class Performance_Budgets {
      */
     public static function render_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'perfaudit-pro'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'site-performance-tracker'));
         }
 
         include PERFAUDIT_PRO_PLUGIN_DIR . 'includes/admin/views/budgets.php';

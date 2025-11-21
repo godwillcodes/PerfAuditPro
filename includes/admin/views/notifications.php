@@ -10,7 +10,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $notifications = get_option('perfaudit_pro_notifications', array());
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $notifications = array_reverse($notifications); // Most recent first
 ?>
 <div class="wrap perfaudit-pro-notifications">
@@ -30,7 +32,7 @@ $notifications = array_reverse($notifications); // Most recent first
                 <p style="text-align: center; color: #64748b; padding: 40px;">No notifications yet. You're all good! 🎉</p>
             </div>
         <?php else: ?>
-            <?php foreach ($notifications as $notification): ?>
+            <?php foreach ($notifications as $notification): // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global ?>
                 <div class="perfaudit-pro-card notification-item <?php echo empty($notification['read']) ? 'unread' : ''; ?>" data-notification-id="<?php echo esc_attr($notification['id']); ?>">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div style="flex: 1;">
@@ -51,7 +53,7 @@ $notifications = array_reverse($notifications); // Most recent first
                                 <div style="margin-top: 12px;">
                                     <strong>Violations:</strong>
                                     <ul style="margin: 8px 0; padding-left: 20px;">
-                                        <?php foreach ($notification['violations'] as $violation): ?>
+                                        <?php foreach ($notification['violations'] as $violation): // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global ?>
                                             <li style="color: #FF6B6B;"><?php echo esc_html($violation['message']); ?></li>
                                         <?php endforeach; ?>
                                     </ul>
@@ -99,7 +101,7 @@ jQuery(document).ready(function($) {
             method: 'POST',
             data: {
                 action: 'perfaudit_update_notifications',
-                nonce: '<?php echo wp_create_nonce('perfaudit_notifications'); ?>',
+                nonce: '<?php echo esc_js(wp_create_nonce('perfaudit_notifications')); ?>',
                 notifications: JSON.stringify(notifications)
             },
             success: function() {

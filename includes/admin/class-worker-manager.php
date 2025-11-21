@@ -133,11 +133,12 @@ class Worker_Manager {
 
         wp_send_json_success(array(
             'message' => sprintf(
+                /* translators: %d: number of stuck audits */
                 _n(
                     '%d stuck audit reset to pending.',
                     '%d stuck audits reset to pending.',
                     $count,
-                    'perfaudit-pro'
+                    'site-performance-tracker'
                 ),
                 $count
             ),

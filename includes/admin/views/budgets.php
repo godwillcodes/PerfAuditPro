@@ -10,8 +10,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $budgets = \PerfAuditPro\Admin\Performance_Budgets::get_budgets();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $violations = get_option('perfaudit_pro_budget_violations', array());
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
 $violations = array_slice(array_reverse($violations), 0, 50); // Last 50
 ?>
 <div class="wrap perfaudit-pro-budgets">
@@ -31,7 +34,7 @@ $violations = array_slice(array_reverse($violations), 0, 50); // Last 50
                 <p style="text-align: center; color: #64748b; padding: 40px;">No budgets configured. Create one to start tracking!</p>
             </div>
         <?php else: ?>
-            <?php foreach ($budgets as $budget): ?>
+            <?php foreach ($budgets as $budget): // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global ?>
                 <div class="perfaudit-pro-card budget-item" data-budget-id="<?php echo esc_attr($budget['id']); ?>">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div style="flex: 1;">
@@ -73,7 +76,7 @@ $violations = array_slice(array_reverse($violations), 0, 50); // Last 50
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($violations as $violation): ?>
+                <?php foreach ($violations as $violation): // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global ?>
                 <tr>
                     <td><?php echo esc_html($violation['budget_name']); ?></td>
                     <td><?php echo esc_html(ucfirst(str_replace('_', ' ', $violation['metric']))); ?></td>
@@ -165,7 +168,7 @@ $violations = array_slice(array_reverse($violations), 0, 50); // Last 50
 
 <script>
 jQuery(document).ready(function($) {
-    const nonce = '<?php echo wp_create_nonce('perfaudit_budgets'); ?>';
+    const nonce = '<?php echo esc_js(wp_create_nonce('perfaudit_budgets')); ?>';
 
     $('#add-budget-btn, .edit-budget').on('click', function() {
         const budgetData = $(this).data('budget');

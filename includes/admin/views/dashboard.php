@@ -14,7 +14,9 @@ if (!defined('ABSPATH')) {
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
     <?php
+    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
     $scorecard = \PerfAuditPro\Admin\Scorecard::get_scorecard();
+    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
     $grade_colors = array(
         'A' => '#10b981',
         'B' => '#3b82f6',
@@ -22,6 +24,7 @@ if (!defined('ABSPATH')) {
         'D' => '#ef4444',
         'F' => '#dc2626',
     );
+    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable, not a global
     $grade_color = $grade_colors[$scorecard['grade']] ?? '#6b7280';
     ?>
     <div class="perfaudit-pro-scorecard-modern" data-grade="<?php echo esc_attr(strtolower($scorecard['grade'])); ?>" style="--grade-color: <?php echo esc_attr($grade_color); ?>;">
@@ -202,8 +205,8 @@ if (!defined('ABSPATH')) {
                 </svg>
             </div>
             <div>
-                <h2 class="perfaudit-pro-create-audit-title"><?php esc_html_e('Create New Audit', 'perfaudit-pro'); ?></h2>
-                <p class="perfaudit-pro-create-audit-subtitle"><?php esc_html_e('Run a comprehensive performance audit using Google PageSpeed Insights API. Select desktop or mobile testing to analyze your site\'s performance metrics.', 'perfaudit-pro'); ?></p>
+                    <h2 class="perfaudit-pro-create-audit-title"><?php esc_html_e('Create New Audit', 'site-performance-tracker'); ?></h2>
+                <p class="perfaudit-pro-create-audit-subtitle"><?php esc_html_e('Run a comprehensive performance audit using Google PageSpeed Insights API. Select desktop or mobile testing to analyze your site\'s performance metrics.', 'site-performance-tracker'); ?></p>
             </div>
         </div>
         
@@ -214,7 +217,7 @@ if (!defined('ABSPATH')) {
                         <path d="M8 0C3.58 0 0 3.58 0 8C0 12.42 3.58 16 8 16C12.42 16 16 12.42 16 8C16 3.58 12.42 0 8 0ZM8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14Z" fill="currentColor"/>
                         <path d="M8 4V8L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
-                    <?php esc_html_e('URL to Audit', 'perfaudit-pro'); ?>
+                    <?php esc_html_e('URL to Audit', 'site-performance-tracker'); ?>
                 </label>
                 <div class="perfaudit-pro-input-wrapper">
                     <input type="url" id="audit-url" style="padding: 10px;" name="url" value="<?php echo esc_attr(home_url()); ?>" required 
@@ -229,7 +232,7 @@ if (!defined('ABSPATH')) {
                         <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
                         <path d="M6 2V14M10 2V14" stroke="currentColor" stroke-width="1.5"/>
                     </svg>
-                    <?php esc_html_e('Device Type', 'perfaudit-pro'); ?>
+                    <?php esc_html_e('Device Type', 'site-performance-tracker'); ?>
                 </label>
                 <div class="perfaudit-pro-device-selector" style="padding: 20px; gap: 50px;">
                     <input type="radio" id="device-desktop" name="device" value="desktop" checked class="perfaudit-pro-device-radio">
@@ -258,7 +261,7 @@ if (!defined('ABSPATH')) {
                         <path d="M9 0C4.03 0 0 4.03 0 9C0 13.97 4.03 18 9 18C13.97 18 18 13.97 18 9C18 4.03 13.97 0 9 0ZM9 16C5.13 16 2 12.87 2 9C2 5.13 5.13 2 9 2C12.87 2 16 5.13 16 9C16 12.87 12.87 16 9 16Z" fill="currentColor"/>
                         <path d="M9 5V9L12 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
-                    <span><?php esc_html_e('Create Audit', 'perfaudit-pro'); ?></span>
+                    <span><?php esc_html_e('Create Audit', 'site-performance-tracker'); ?></span>
                 </span>
                 <span class="perfaudit-pro-button-loader" style="display: none;">
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -267,7 +270,7 @@ if (!defined('ABSPATH')) {
                             <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416;-31.416" repeatCount="indefinite"/>
                         </circle>
                     </svg>
-                    <span><?php esc_html_e('Creating...', 'perfaudit-pro'); ?></span>
+                    <span><?php esc_html_e('Creating...', 'site-performance-tracker'); ?></span>
                 </span>
             </button>
         </form>
@@ -363,7 +366,7 @@ if (!defined('ABSPATH')) {
 
     <div class="perfaudit-pro-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-            <h2 style="margin: 0;"><?php esc_html_e('Recent Audits', 'perfaudit-pro'); ?></h2>
+            <h2 style="margin: 0;"><?php esc_html_e('Recent Audits', 'site-performance-tracker'); ?></h2>
             <div style="display: flex; gap: var(--spacing-sm);" role="toolbar" aria-label="Export options">
                 <button id="export-csv-btn" class="perfaudit-pro-worker-button" style="font-size: 13px; padding: 8px 16px;" aria-label="Export audit data as CSV file">
                     Export CSV
@@ -379,7 +382,7 @@ if (!defined('ABSPATH')) {
                 <div style="height: 20px; background: #e5e7eb; border-radius: 4px; margin-bottom: 10px; width: 80%; animation: pulse 1.5s ease-in-out infinite;"></div>
                 <div style="height: 20px; background: #e5e7eb; border-radius: 4px; width: 60%; animation: pulse 1.5s ease-in-out infinite;"></div>
             </div>
-            <p class="screen-reader-text"><?php esc_html_e('Loading audit data...', 'perfaudit-pro'); ?></p>
+            <p class="screen-reader-text"><?php esc_html_e('Loading audit data...', 'site-performance-tracker'); ?></p>
         </div>
     </div>
 
